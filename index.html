@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#050307">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600&family=Unbounded:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@0,300..900;1,300..900&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <!--
   THE QUASAR LAB · spatial website prototype · i*0
   PLACEHOLDERS: anything with class "ph" or "ph-img", or tagged "draft" / "confirm".
@@ -310,6 +310,119 @@ ol.signals li::before{content:"0" counter(s);display:block;font:600 1.3rem/1 var
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 @media (max-width:760px){.lite .panel{background:linear-gradient(rgba(5,3,7,0),rgba(5,3,7,.8) 14%,rgba(5,3,7,.8) 88%,rgba(5,3,7,0))}.lite .panel.hero{background:linear-gradient(rgba(5,3,7,0) 18%,rgba(5,3,7,.9) 42%,rgba(5,3,7,.9))}}
+
+/* =====================================================================
+   i*2 · BOLD TYPE + INTERACTION LAYER
+   ===================================================================== */
+:root{--serif:'Anton','Archivo',Impact,sans-serif;--sans:'Archivo',system-ui,-apple-system,sans-serif;--mono:'DM Mono',ui-monospace,Menlo,monospace;--it:'Instrument Serif',Georgia,serif}
+body{font-synthesis-weight:none}
+h1,h2,h3{font-weight:400;letter-spacing:.004em;line-height:.9}
+h1{font-size:clamp(3.1rem,8.6vw,8.8rem)}
+h2{font-size:clamp(2.3rem,4.8vw,4.8rem)}
+.room-inner h1{font-size:clamp(2.9rem,7.2vw,6.8rem);line-height:.9}
+.room-inner h2{font-size:clamp(1.9rem,3.6vw,3.2rem)}
+h1 em,h2 em,h3 em,.room-inner h1 em{font-family:var(--it);font-style:italic;font-weight:400;text-transform:none;letter-spacing:-.01em;font-size:1.06em;padding-right:.08em}
+.brand{font-weight:400;font-size:1rem;letter-spacing:.07em}
+.lede{font-size:clamp(1.06rem,1.45vw,1.3rem);line-height:1.55}
+.lede strong{font-weight:700}
+.btn{font:700 .78rem/1 var(--sans);text-transform:uppercase;letter-spacing:.1em;padding:16px 24px}
+.btn.primary{background:var(--gold);box-shadow:6px 6px 0 var(--molten)}
+.btn.primary:hover{box-shadow:9px 9px 0 var(--molten)}
+.btn.ghost{border-width:2px}
+.formula{font-weight:400;letter-spacing:.02em}
+.orbit-list .nm{font-weight:400;letter-spacing:.04em;font-size:1rem}
+
+/* marquee */
+.marquee{grid-column:1/-1;overflow:hidden;margin:0 calc(-1*var(--pad)) 40px;border-block:2px solid var(--line);padding:16px 0;user-select:none}
+.marquee>div{display:flex;width:max-content;animation:mq 38s linear infinite}
+.marquee:hover>div{animation-play-state:paused}
+.marquee span{font:400 clamp(2.6rem,7vw,6rem)/1 var(--serif);text-transform:uppercase;padding-right:.45em;white-space:nowrap;color:var(--cream)}
+.marquee span:nth-child(even){color:transparent;-webkit-text-stroke:1.5px var(--gold)}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.marquee>div{animation:none}}
+
+/* cursor */
+#cur{position:fixed;left:0;top:0;width:36px;height:36px;margin:-18px 0 0 -18px;border:1.5px solid var(--gold);border-radius:50%;pointer-events:none;z-index:400;opacity:0;transition:width .35s var(--ease),height .35s var(--ease),margin .35s var(--ease),background .35s,opacity .3s}
+#cur.on{opacity:1}
+#cur.big{width:74px;height:74px;margin:-37px 0 0 -37px;background:rgba(255,179,71,.14)}
+#cur.down{width:22px;height:22px;margin:-11px 0 0 -11px;background:var(--gold)}
+
+/* ---------- people ---------- */
+.pp-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:34px 0 10px}
+.pp-search{flex:1 1 220px;min-width:0;padding:12px 18px;border:2px solid var(--line);border-radius:999px;background:rgba(5,3,7,.45);font:400 .95rem var(--sans);outline:none;transition:border-color .3s}
+.pp-search:focus{border-color:var(--gold)}
+.pp-chips{display:flex;gap:8px;flex-wrap:wrap}
+.pp-count{font:500 .62rem/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:6px 0 22px!important}
+.pp-wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:44px;align-items:start}
+@media (max-width:860px){.pp-wrap{grid-template-columns:1fr;gap:28px}}
+.pp-stage{position:relative;aspect-ratio:1;width:100%;max-width:560px;margin:0 auto;touch-action:pan-y;cursor:grab}
+.pp-stage:active{cursor:grabbing}
+.pp-ring{position:absolute;left:50%;top:50%;aspect-ratio:1;border:1px dashed rgba(244,234,216,.16);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.pp-core{position:absolute;left:50%;top:50%;width:24%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle,#050307 0 30%,transparent 32%),radial-gradient(ellipse 100% 24% at 50% 50%,rgba(255,236,200,.95),rgba(255,140,40,.55) 42%,transparent 72%),radial-gradient(circle,rgba(255,122,26,.4),transparent 70%);animation:corePulse 5s ease-in-out infinite}
+.pp-core::after{content:"";position:absolute;left:50%;top:-60%;bottom:-60%;width:2px;margin-left:-1px;background:linear-gradient(transparent,rgba(155,107,255,.8),transparent)}
+@keyframes corePulse{50%{transform:translate(-50%,-50%) scale(1.08)}}
+.pp-node{position:absolute;left:50%;top:50%;display:grid;justify-items:center;gap:8px;transform:translate(-50%,-50%);text-decoration:none;color:inherit}
+.pp-node.dim{opacity:.12;pointer-events:none}
+.pp-av{display:grid;place-items:center;width:clamp(58px,11vw,88px);aspect-ratio:1;border-radius:50%;font:400 1.35rem/1 var(--serif);letter-spacing:.04em;color:var(--void);background:radial-gradient(circle at 34% 30%,#fff6e4,var(--pc) 46%,color-mix(in srgb,var(--pc) 35%,#050307));background-size:cover;background-position:center;box-shadow:0 0 0 1px rgba(244,234,216,.22),0 0 34px -4px var(--pc);transition:transform .5s var(--ease),box-shadow .4s}
+.pp-node .nm{font:500 .62rem/1.2 var(--mono);letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px 10px #050307,0 0 4px #050307}
+.pp-node:hover .pp-av,.pp-node:focus-visible .pp-av{transform:scale(1.14)}
+.pp-node[aria-pressed=true] .pp-av{box-shadow:0 0 0 2px var(--pc),0 0 0 7px rgba(5,3,7,.9),0 0 0 9px var(--pc),0 0 60px var(--pc)}
+.pp-node.join .pp-av,.pp-card.join .pp-av{background:transparent;border:2px dashed var(--gold);color:var(--gold);box-shadow:none;font-size:2rem}
+.pp-hint{text-align:center;font:500 .6rem/1.4 var(--mono)!important;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)!important;margin:34px auto 0!important}
+.pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.pp-grid[hidden],#ppOrbit[hidden]{display:none}
+.pp-card{display:grid;gap:12px;align-content:start;text-align:left;padding:14px 14px 18px;border:2px solid var(--line);border-radius:18px;background:rgba(13,10,18,.6);text-decoration:none;color:inherit;transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s var(--ease),border-color .3s,box-shadow .3s}
+.pp-card:hover,.pp-card[aria-pressed=true]{border-color:var(--pc,var(--gold));box-shadow:8px 8px 0 color-mix(in srgb,var(--pc,var(--gold)) 60%,transparent)}
+.pp-card.dim{display:none}
+.pp-card .pp-av{width:100%;aspect-ratio:4/5;border-radius:12px;font-size:3rem}
+.pp-card b{font:400 1.25rem/1 var(--serif);text-transform:uppercase;letter-spacing:.02em}
+.pp-card small{font:500 .58rem/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.pp-panel{position:sticky;top:20px;border:2px solid color-mix(in srgb,var(--pc,#ffb347) 50%,transparent);border-radius:24px;padding:clamp(20px,3vw,32px);background:linear-gradient(165deg,color-mix(in srgb,var(--pc,#ffb347) 14%,transparent),rgba(13,10,18,.82) 46%);scroll-margin-top:90px}
+.pp-pin{animation:roomIn .6s var(--ease) both}
+.pp-head{display:flex;gap:18px;align-items:center;margin-bottom:18px}
+.pp-head .pp-av{width:88px;flex:none;font-size:1.7rem}
+.room-inner .pp-panel h2{margin:0;font-size:clamp(2rem,3.4vw,3rem)}
+.pp-role{font:500 .62rem/1.4 var(--mono)!important;letter-spacing:.18em;text-transform:uppercase;color:var(--pc)!important;margin:0 0 6px!important}
+.room-inner .pp-line{font:400 italic 1.35rem/1.3 var(--it);color:var(--cream)}
+.pp-panel blockquote{border-left:3px solid var(--pc);padding:4px 0 4px 16px;margin:20px 0;font:400 italic 1.3rem/1.35 var(--it);color:var(--cream)}
+.pp-panel cite{display:block;margin-top:8px;font:500 .58rem/1.4 var(--mono);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.room-inner .pp-links a{color:var(--pc)}
+.pp-nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+
+/* ---------- game ---------- */
+.qz{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:40px;align-items:center;margin-top:36px}
+@media (max-width:860px){.qz{grid-template-columns:1fr;gap:18px}.qz-vis{max-width:260px;margin:0 auto}}
+.qz-vis{position:relative;width:100%;aspect-ratio:1}
+.qz-vis svg{width:100%;height:100%;overflow:visible}
+.qz-star{transition:opacity .8s}
+.qz-vis .lbl{position:absolute;left:0;right:0;bottom:-6px;text-align:center;font:500 .6rem/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.qz-card{border:2px solid var(--line);border-radius:24px;padding:clamp(20px,3vw,34px);background:rgba(13,10,18,.78);min-height:380px;display:flex;flex-direction:column}
+.qz-hud{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;font:500 .62rem/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+.qz-hud b{color:var(--gold);font-weight:500}
+.qz-streak{color:var(--molten)!important}
+.qz-time{height:6px;border-radius:9px;background:rgba(244,234,216,.08);overflow:hidden;margin-bottom:22px}
+.qz-time i{display:block;height:100%;background:linear-gradient(90deg,var(--ember),var(--gold));transform-origin:left;will-change:transform}
+.room-inner .qz-q{font:400 clamp(1.6rem,3vw,2.5rem)/1 var(--serif);text-transform:uppercase;margin:0 0 22px;color:var(--cream);max-width:none}
+.qz-opts{display:grid;gap:10px}
+.qz-opt{display:flex;gap:14px;align-items:center;text-align:left;width:100%;padding:14px 16px;border:2px solid var(--line);border-radius:14px;background:rgba(5,3,7,.5);font:500 1rem/1.35 var(--sans);transition:border-color .2s,background .2s,transform .2s}
+.qz-opt kbd{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);font:500 .7rem var(--mono);color:var(--gold)}
+.qz-opt:hover:not([disabled]){border-color:var(--gold);transform:translateX(6px)}
+.qz-opt.ok{border-color:#5be3a0;background:rgba(91,227,160,.12)}
+.qz-opt.no{border-color:var(--ember);background:rgba(255,77,31,.12);animation:qzshake .4s}
+.qz-opt[disabled]{cursor:default}
+@keyframes qzshake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.qz-why{margin-top:18px;padding:16px 18px;border-radius:14px;border-left:3px solid var(--gold);background:rgba(255,179,71,.07);animation:roomIn .5s var(--ease) both}
+.room-inner .qz-why p{margin:0 0 6px;color:var(--cream)}
+.qz-why .h3{margin-bottom:6px!important}
+.qz-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:auto;padding-top:20px;flex-wrap:wrap}
+.qz-big{font:400 clamp(3.2rem,9vw,6.5rem)/.9 var(--serif);text-transform:uppercase;color:var(--gold);margin:6px 0 10px}
+.qz-stats{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.qz-stats span{padding:10px 14px;border:1px solid var(--line);border-radius:12px;font:500 .62rem/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.qz-stats b{display:block;font:400 1.7rem/1 var(--serif);color:var(--cream);letter-spacing:.02em;margin-bottom:4px}
+.qz-miss{margin:8px 0 0;padding:0;list-style:none}
+.qz-miss li{padding:8px 0;border-top:1px solid var(--line);color:var(--mute);font-size:.92rem}
+.qz-pop{position:absolute;left:50%;top:18%;transform:translateX(-50%);font:400 1.6rem/1 var(--serif);color:var(--gold);pointer-events:none;animation:qzpop 1s var(--ease) forwards}
+@keyframes qzpop{to{opacity:0;transform:translate(-50%,-50px)}}
 </style>
 </head>
 <body>
@@ -337,7 +450,7 @@ ol.signals li::before{content:"0" counter(s);display:block;font:600 1.3rem/1 var
 <header class="top">
   <a class="brand" href="#/" id="brand" aria-label="The Quasar Lab, home"><svg><use href="#qmark"/></svg><span>The Quasar Lab</span></a>
   <nav class="nav" id="nav" aria-label="Primary">
-    <a href="#/projects">Projects</a><a href="#/method">Method</a><a href="#/research">Research</a><a href="#/about">Lab</a><a href="#/events">Events</a><a href="#/journal">Journal</a><a href="#/collaborate">Collaborate</a>
+    <a href="#/projects">Projects</a><a href="#/method">Method</a><a href="#/research">Research</a><a href="#/about">Lab</a><a href="#/people">People</a><a href="#/events">Events</a><a href="#/journal">Journal</a><a href="#/game">Game</a><a href="#/collaborate">Collaborate</a>
   </nav>
   <div class="ctrls">
     <button class="chip" id="btnSound" aria-pressed="false" title="Ambient sound"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="lbl">Sound</span><span class="sr">ambient sound</span></button>
@@ -415,7 +528,7 @@ ol.signals li::before{content:"0" counter(s);display:block;font:600 1.3rem/1 var
         <div class="ph-img" role="img" aria-label="Portrait placeholder">Portrait<br>replace</div>
         <div><h3>Sultan Sharrief</h3><p>Founder &amp; director. Filmmaker (<i>Bilal's Stand</i>, Sundance 2010), XR designer and community organizer. MS Comparative Media, MIT. PhD candidate, USC Media Arts + Practice.</p></div>
       </div>
-      <div class="row"><a class="btn ghost" href="#/about">Meet the lab</a><a class="btn ghost" href="#/research">Read the research</a></div>
+      <div class="row"><a class="btn ghost" href="#/people">Meet the people</a><a class="btn ghost" href="#/research">Read the research</a><a class="btn ghost" href="#/game">Play the game</a></div>
     </div>
   </section>
 
@@ -432,8 +545,9 @@ ol.signals li::before{content:"0" counter(s);display:block;font:600 1.3rem/1 var
 </main>
 
 <footer class="site">
+  <div class="marquee" aria-hidden="true"><div><span>Not Designed For</span><span>Become the light</span><span>Quasar Physics</span><span>i* every version is whole</span><span>Not Designed For</span><span>Become the light</span><span>Quasar Physics</span><span>i* every version is whole</span></div></div>
   <div><a class="brand" href="#/"><svg><use href="#qmark"/></svg><span>The Quasar Lab</span></a><p>Research and design for the people systems were not designed for.</p></div>
-  <div><h4>Explore</h4><ul><li><a href="#/projects">Projects</a></li><li><a href="#/method">HIIPED method</a></li><li><a href="#/research">Research</a></li><li><a href="#/about">The lab</a></li></ul></div>
+  <div><h4>Explore</h4><ul><li><a href="#/projects">Projects</a></li><li><a href="#/method">HIIPED method</a></li><li><a href="#/research">Research</a></li><li><a href="#/about">The lab</a></li><li><a href="#/people">People</a></li><li><a href="#/game">Play the game</a></li></ul></div>
   <div><h4>Gather</h4><ul><li><a href="#/events">Events</a></li><li><a href="#/journal">Journal</a></li><li><a href="#/collaborate">Collaborate</a></li><li><a href="#/collaborate">Support</a></li></ul></div>
   <div><h4>Follow</h4><ul><li><a href="#" class="ph" data-toast="Add Instagram link">Instagram</a></li><li><a href="#" class="ph" data-toast="Add LinkedIn link">LinkedIn</a></li><li><a href="#" class="ph" data-toast="Add YouTube link">YouTube</a></li><li><a href="#" class="ph" data-toast="Add email address">Email</a></li></ul></div>
   <div class="fine"><span>© 2026 The Quasar Lab</span><button class="chip" id="btnPh" aria-pressed="false">Show placeholders</button><span>Spatial prototype · i*1</span></div>
@@ -698,7 +812,7 @@ function renderAbout(){
   <div class="qcard"><blockquote>“Move at the speed of trust. Focus on critical connections more than critical mass.”</blockquote><cite>adrienne maree brown · Emergent Strategy</cite></div>
   <div class="qcard"><blockquote>“There's nothing new under the sun, but there are new suns.”</blockquote><cite>Octavia E. Butler</cite></div></div>
   <h2>Timeline</h2><ol class="timeline">${T.map(t=>`<li><b>${t[0]}</b><span>${t[1]}</span></li>`).join('')}</ol>
-  <h2>Team</h2><div class="team">${[1,2,3,4].map(n=>`<div>${phImg('Portrait 0'+n)}<p>${ph('Name · role')}</p></div>`).join('')}</div>
+  <h2>People</h2><p>The founder, the team and the collaborators in the lab's orbit, each with their story.</p><div class="row"><a class="btn primary" href="#/people">Meet the people in orbit</a></div>
   <h2>Affiliations</h2><div class="logos"><div>MIT<br><small>logo · replace</small></div><div>USC Media Arts + Practice<br><small>logo · replace</small></div><div>ASU Center for Science and the Imagination<br><small>logo · replace</small></div><div>Allied Media Projects<br><small>logo · replace</small></div><div>Reality Hack<br><small>logo · replace</small></div></div>`;
 }
 function renderEvents(){
@@ -743,7 +857,215 @@ function renderCollab(){
   <label class="full">Message<textarea name="m" rows="5"></textarea></label><div class="full"><button class="btn primary" type="submit">Transmit</button> <span class="tag">form not connected</span></div></form>
   <p class="h3" style="margin-top:40px">Direct</p><p>${ph('hello@[domain] · replace')}</p>`;
 }
-const PAGES={projects:renderProjects,method:renderMethod,research:renderResearch,about:renderAbout,events:renderEvents,journal:renderJournal,collaborate:renderCollab};
+
+/* =====================================================================
+   PEOPLE
+   ===================================================================== */
+const PEOPLE=[
+  {id:'sultan',name:'Sultan Sharrief',role:'Founder & director',group:'founder',color:'#ffb347',initials:'SS',
+   line:'Filmmaker, XR designer, community organizer. A mad scientist, with a method.',
+   bio:["Sultan makes films, XR worlds and community events, and founded The Quasar Lab at MIT in 2018. His first feature, <i>Bilal's Stand</i>, premiered at the Sundance Film Festival in 2010. It grew out of Street Cred, the Detroit youth media program he ran with Allied Media Projects, and he spent years teaching media to high school students in Detroit.",
+        "He studied film at the University of Michigan and earned an MS in Comparative Media Studies at MIT, where he started the lab. He is a PhD candidate at USC Media Arts + Practice. His dissertation, <i>Quasar Physics, New Dimensions of Decolonial Design</i>, includes a virtual reality data visualization musical.",
+        "His HIIPE design method draws on Sufi practice, and one of his experiments imagines dancing with holograms of ancestors drawn from DNA results. His USC directory bio is an art piece of its own: a live email to the department chair about how to write a bio. He also founded the Michigan Ice Carving Team."],
+   quote:{t:"I've done lots of random things and the notion of relevance seems too judgemental.",c:'Sultan, USC MA+P directory bio'},
+   tags:['BA Film · University of Michigan','MS Comparative Media · MIT','PhD candidate · USC MA+P','Applied Imagination Fellow · ASU CSI','Reality Hack'],
+   links:[['USC MA+P directory','https://map.usc.edu/phds/']],img:''},
+  {id:'you',name:'[[Your name]]',role:'[[Your role at the lab]]',group:'team',color:'#9b6bff',initials:'+1',
+   line:'[[One line that sums you up.]]',
+   bio:['[[Your bio: two or three short paragraphs. What you make, where you came from, what you are building with the lab.]]'],
+   quote:null,tags:['[[Degree · school]]','[[Focus area]]'],links:[],img:''}
+];
+const plain=t=>String(t).replace(/\[\[(.+?)\]\]/g,'$1').replace(/<[^>]+>/g,'');
+const avatar=p=>`<span class="pp-av" style="--pc:${p.color}${p.img?`;background-image:url('${p.img}')`:''}" aria-hidden="true">${p.img?'':p.initials}</span>`;
+function renderPeople(){
+  const G=[['all','All'],['founder','Founder'],['team','Team']];
+  return `<p class="eyebrow">People · in orbit</p><h1 id="roomTitle" tabindex="-1">The people <em>in orbit.</em></h1>
+  <p class="lede">The researchers, artists and organizers who keep the lab burning. Pick a star to read their story, drag to spin the orbit, or switch to the grid.</p>
+  <div id="pp"><div class="pp-bar"><label class="sr" for="ppQ">Search people</label><input id="ppQ" class="pp-search" type="search" placeholder="Search name, role, field" autocomplete="off">
+  <div class="pp-chips" role="group" aria-label="Filter by role">${G.map((g,i)=>`<button class="chip" data-g="${g[0]}" aria-pressed="${i===0}">${g[1]}</button>`).join('')}</div>
+  <button class="chip" id="ppView" aria-pressed="false">Grid view</button></div>
+  <p class="pp-count" id="ppCount" aria-live="polite"></p>
+  <div class="pp-wrap"><div>
+   <div id="ppOrbit"><div class="pp-stage" id="ppStage"><span class="pp-ring" style="width:48%"></span><span class="pp-ring" style="width:76%"></span><span class="pp-core"></span>
+   ${PEOPLE.map(p=>`<button class="pp-node" data-id="${p.id}" style="--pc:${p.color}" aria-pressed="false" aria-label="${plain(p.name)}, ${plain(p.role)}">${avatar(p)}<span class="nm">${plain(p.name)}</span></button>`).join('')}
+   <a class="pp-node join" href="#/collaborate" style="--pc:#ffb347"><span class="pp-av" aria-hidden="true">+</span><span class="nm">Join the orbit</span></a></div>
+   <p class="pp-hint">Hover to pause · drag to spin · click a star · arrow keys to browse</p></div>
+   <div class="pp-grid" id="ppGrid" hidden>${PEOPLE.map(p=>`<button class="pp-card" data-id="${p.id}" style="--pc:${p.color}" aria-pressed="false">${avatar(p)}<b>${fx(p.name)}</b><small>${fx(p.role)}</small></button>`).join('')}
+   <a class="pp-card join" href="#/collaborate"><span class="pp-av" aria-hidden="true">+</span><b>Join the orbit</b><small>Collaborate with the lab</small></a></div>
+  </div><aside class="pp-panel" id="ppPanel" aria-live="polite"></aside></div></div>`;
+}
+function initPeople(slug){
+  const root=$('#pp',room);if(!root)return;
+  const stage=$('#ppStage',root),panel=$('#ppPanel',root),nodes=$$('.pp-node',root),cards=$$('.pp-card[data-id]',root);
+  let sel=PEOPLE.some(p=>p.id===slug)?slug:PEOPLE[0].id,group='all',q='',spin=0,vel=0,hover=false,drag=null;
+  const vis=()=>PEOPLE.filter(p=>(group==='all'||p.group===group)&&(!q||plain([p.name,p.role,p.line,p.tags.join(' '),p.bio.join(' ')].join(' ')).toLowerCase().includes(q)));
+  function show(id,scroll){
+    const p=PEOPLE.find(x=>x.id===id);if(!p)return;sel=id;
+    panel.style.setProperty('--pc',p.color);
+    panel.innerHTML=`<div class="pp-pin"><div class="pp-head">${avatar(p)}<div><p class="pp-role">${fx(p.role)}</p><h2>${fx(p.name)}</h2></div></div>
+    <p class="pp-line">${fx(p.line)}</p>${p.bio.map(b=>`<p>${fx(b)}</p>`).join('')}
+    ${p.quote?`<blockquote>“${p.quote.t}”<cite>${p.quote.c}</cite></blockquote>`:''}
+    <div class="tags">${p.tags.map(t=>`<span>${fx(t)}</span>`).join('')}</div>
+    ${p.links.length?`<p class="pp-links" style="margin-top:16px">${p.links.map(l=>`<a href="${l[1]}" target="_blank" rel="noopener">${l[0]} ↗</a>`).join(' · ')}</p>`:''}
+    <div class="pp-nav"><button class="chip" data-step="-1">← Prev</button><button class="chip" data-step="1">Next →</button></div></div>`;
+    nodes.concat(cards).forEach(n=>{if(n.dataset.id)n.setAttribute('aria-pressed',String(n.dataset.id===id));});
+    try{history.replaceState(null,'','#/people/'+id);}catch(e){}
+    if(scroll&&matchMedia('(max-width:860px)').matches)panel.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});
+  }
+  function filter(){
+    const v=vis(),ids=new Set(v.map(p=>p.id));
+    nodes.concat(cards).forEach(n=>{if(n.dataset.id)n.classList.toggle('dim',!ids.has(n.dataset.id));});
+    $('#ppCount',root).textContent=v.length?`${v.length} ${v.length===1?'person':'people'} in orbit`:'No one matches yet. The orbit is open: join it.';
+  }
+  function step(d){const v=vis();if(!v.length)return;let i=v.findIndex(p=>p.id===sel);i=(i+d+v.length)%v.length;show(v[i].id);}
+  root.addEventListener('click',e=>{
+    const n=e.target.closest('[data-id]');if(n){if(drag&&drag.moved)return;show(n.dataset.id,true);return;}
+    const g=e.target.closest('[data-g]');if(g){group=g.dataset.g;$$('[data-g]',root).forEach(b=>b.setAttribute('aria-pressed',String(b===g)));filter();return;}
+    const s=e.target.closest('[data-step]');if(s){step(+s.dataset.step);return;}
+    const vb=e.target.closest('#ppView');if(vb){const toGrid=$('#ppGrid',root).hidden;$('#ppGrid',root).hidden=!toGrid;$('#ppOrbit',root).hidden=toGrid;vb.setAttribute('aria-pressed',String(toGrid));vb.textContent=toGrid?'Orbit view':'Grid view';}
+  });
+  $('#ppQ',root).addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();filter();});
+  root.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='ArrowRight'){e.preventDefault();step(1);}else if(e.key==='ArrowLeft'){e.preventDefault();step(-1);}});
+  root.addEventListener('pointermove',e=>{const c=e.target.closest('.pp-card');if(!c||RM)return;const r=c.getBoundingClientRect();
+    c.style.setProperty('--ry',(((e.clientX-r.left)/r.width-.5)*16).toFixed(2)+'deg');c.style.setProperty('--rx',((.5-(e.clientY-r.top)/r.height)*16).toFixed(2)+'deg');});
+  root.addEventListener('pointerout',e=>{const c=e.target.closest('.pp-card');if(c&&!c.contains(e.relatedTarget)){c.style.setProperty('--rx','0deg');c.style.setProperty('--ry','0deg');}});
+  // orbit: founder on the inner ring, everyone else (and the open seat) on the outer ring
+  const rings=[[],[]];nodes.forEach(n=>{const p=PEOPLE.find(x=>x.id===n.dataset.id);rings[p&&p.group==='founder'?0:1].push(n);});
+  const R=[24,38],DIR=[1,-.62];
+  const ang=e=>{const r=stage.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2);};
+  function layout(){rings.forEach((ring,k)=>ring.forEach((n,i)=>{const a=i/ring.length*Math.PI*2+spin*DIR[k]+(k?0:-Math.PI/2),s=Math.sin(a);
+    n.style.left=(50+R[k]*Math.cos(a)).toFixed(3)+'%';n.style.top=(50+R[k]*s).toFixed(3)+'%';
+    n.style.transform=`translate(-50%,-50%) scale(${(.86+.14*(s+1)/2).toFixed(3)})`;n.style.zIndex=String(10+Math.round(s*5));}));}
+  stage.addEventListener('pointerover',e=>{hover=!!e.target.closest('.pp-node');});
+  stage.addEventListener('pointerleave',()=>{hover=false;});
+  stage.addEventListener('pointerdown',e=>{drag={a:ang(e),x:e.clientX,y:e.clientY,moved:false};});
+  stage.addEventListener('pointermove',e=>{if(!drag)return;const a=ang(e);let d=a-drag.a;if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>5)drag.moved=true;if(drag.moved){spin+=d;vel=d*.5;drag.a=a;layout();}});
+  addEventListener('pointerup',()=>{const d=drag;setTimeout(()=>{if(drag===d)drag=null;},0);},{once:false});
+  (function tick(){if(!root.isConnected)return;if(!RM&&!hover&&!(drag&&drag.moved))spin+=.0016+vel;vel*=.94;layout();requestAnimationFrame(tick);})();
+  show(sel);filter();
+}
+
+/* =====================================================================
+   GAME · Escape the black hole
+   ===================================================================== */
+const QUIZ=[
+  {q:'What does NDF stand for?',a:['Not Designed For','Never Defined Fully','New Design Frontier','Network Data Framework'],e:'NDF replaces words like "marginalized" or "at risk". It moves the deficit from the person to the design: the system failed first.',go:'research'},
+  {q:'What is a Data Black Hole?',a:['A data system that makes people disappear through bad design','A server that loses files when it crashes','A telescope dataset about real black holes','An encrypted archive nobody can open'],e:'The missing field, the box that does not fit, the dataset that never counted you. Fall below its event horizon and every decision built on it forgets you.',go:'research'},
+  {q:'In HIIPED, what does the D stand for?',a:['Delivery','Design','Data','Destiny'],e:'Delivery is the birth: listen to the world, the project and yourself, then push with everything.',go:'method'},
+  {q:'Which of these is NOT a letter of HIIPED?',a:['Inclusive','Holistic','Iterative','Project Evolution'],e:'HIIPED is Holistic, Intuitive, Iterative, Project Evolution and Delivery.',go:'method'},
+  {q:'What does i*6 mean?',a:['The sixth whole version of the thing','The sixth interview in a study','Six features shipped in one sprint','Version 0.6 of a prototype'],e:'Every version is a whole version, numbered i*. HIIPED itself is on i*6.',go:'method'},
+  {q:'What does the lab run after every iteration?',a:['A Plus/Delta session','An A/B test','A daily stand-up','A post-mortem report'],e:'Plus/Delta: what worked, and what changes in the next i*.',go:'method'},
+  {q:'What does Quasar Physics study?',a:['The x-factor of people who beat the odds','How real quasars emit light','Physics engines for VR games','How to compress very large datasets'],e:'Qualitative stories and quantitative data on the same plane, so neither erases the other.',go:'research'},
+  {q:'In QW = F(DX), what is the X?',a:['The x-factor','The x-axis of a chart','An unknown budget','Extended reality'],e:'Quasar work equals force applied across distance, with the x-factor.',go:'research'},
+  {q:'"Bus pass + purpose > laptop + 2 tutors + a car." What can outweigh resources?',a:['Purpose','Money','Talent','Technology'],e:'A finding that shaped the lab: purpose can outweigh resources.',go:'research'},
+  {q:'What does TALMATAI mean?',a:['Take an actual literal minute and think about it','Test all layers, measure, adjust, try again, iterate','Talk to a mentor about the idea','Tag all media assets the lab archives'],e:'A field-glossary tool from the Intuitive ring of HIIPED.',go:'method'},
+  {q:'In the lab glossary, what does "Babushka" ask you to do?',a:['Zoom out to see the bigger picture','Ask an elder for advice','Nest one project inside another','Start over from scratch'],e:'Like nested dolls: step back until the bigger picture appears.',go:'method'},
+  {q:'W = F × D. When does something "work"?',a:['When it moves someone','When it ships on time','When it is technically flawless','When it gets the most views'],e:'Work is force times distance. If nobody moved, no work was done.',go:'method'},
+  {q:'Which is NOT one of the MIT Game Lab test signals?',a:['Everyone finishes on time','Someone gets frustrated','Someone anticipates: "no, no, no"','The whole group reacts: "ohhhh"'],e:'Frustration, anticipation and a shared "ohhhh" mean an iteration is working.',go:'method'},
+  {q:'What is DROID, the Double ROI?',a:['Long creative projects that also become R&D for tech tools','A robot built for film sets','Two funders paying for one project','Doubling the audience every release'],e:'Five to seven years of documented creative work become research and development. 500+ hours of Venice Beach footage feed a film and a portal for cities.',go:'research'},
+  {q:'Where does the lab say it lives?',a:['In the negative space between academia, nonprofits, government and industry','Inside one university department','In a startup accelerator','Only online, in the metaverse'],e:'Like the vase and the two faces: outside the orbits predefined by funders.',go:'research'},
+  {q:'Who said "Transform yourself to transform the world"?',a:['Grace Lee Boggs','Octavia E. Butler','adrienne maree brown','Harriet Tubman'],e:'Grace Lee Boggs, Detroit organizer and philosopher, part of the lab\'s lineage.',go:'about'},
+  {q:'"There\'s nothing new under the sun, but there are new suns." Who wrote it?',a:['Octavia E. Butler','Grace Lee Boggs','Sun Ra','Toni Morrison'],e:'Octavia E. Butler, from her unfinished epigraph. The lab\'s whole metaphor lives in that line.',go:'about'},
+  {q:'"Move at the speed of trust" comes from which book?',a:['Emergent Strategy','Parable of the Sower','The Next American Revolution','Design Justice'],e:'adrienne maree brown, Emergent Strategy: focus on critical connections more than critical mass.',go:'about'},
+  {q:'Where and when was The Quasar Lab founded?',a:['MIT, 2018','USC, 2010','ASU, 2021','Detroit, 2015'],e:'Founded at MIT in 2018, then incubated at USC Media Arts + Practice.',go:'about'},
+  {q:'Which historical figure guides HIIPED, read as a designer?',a:['Harriet Tubman','Buckminster Fuller','Frederick Douglass','Ada Lovelace'],e:'A holistic, intuitive and iterative practice of liberation, delivered under pressure.',go:'method'}
+];
+const QN=10,QT=20;
+const RANKS=[[0,'Swallowed','Below the horizon. The system forgot you, for now. Read up and try again.'],[4,'Escaping orbit','You felt the pull and fought it. A few more i* and you are out.'],[7,'Burning bright','Most of the light made it out. The lab sees you.'],[9,'Quasar','You outshine the galaxy. Come build with us.']];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+let qzKey=null;
+addEventListener('keydown',e=>{if(qzKey&&$('#qz',room))qzKey(e);});
+function renderGame(){
+  return `<p class="eyebrow">Game · i*1</p><h1 id="roomTitle" tabindex="-1">Escape the <em>black hole.</em></h1>
+  <p class="lede">Ten questions on the ideas at the core of the lab. Every right answer pushes your light away from the event horizon. Every miss pulls you in. Answer fast for bonus luminosity.</p>
+  <div class="qz" id="qz"><div class="qz-vis" aria-hidden="true"><svg viewBox="0 0 300 300">
+   <defs><radialGradient id="qzGlow"><stop offset="0" stop-color="#ffecc8"/><stop offset=".35" stop-color="#ff9a3a" stop-opacity=".7"/><stop offset="1" stop-color="#ff4d1f" stop-opacity="0"/></radialGradient>
+   <radialGradient id="qzStar"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#ffd27a"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient></defs>
+   <circle cx="150" cy="150" r="140" fill="none" stroke="rgba(244,234,216,.08)" stroke-dasharray="2 6"/>
+   <circle cx="150" cy="150" r="95" fill="none" stroke="rgba(244,234,216,.08)" stroke-dasharray="2 6"/>
+   <g id="qzDisk"><ellipse cx="150" cy="150" rx="92" ry="20" fill="url(#qzGlow)"/></g>
+   <circle cx="150" cy="150" r="34" fill="#050307" stroke="#ffb347" stroke-opacity=".7" stroke-width="1.5"/>
+   <line x1="150" y1="40" x2="150" y2="260" stroke="#9b6bff" stroke-opacity=".5"/>
+   <g class="qz-star" id="qzStar"><circle cx="150" cy="150" r="22" fill="url(#qzStar)"/><circle cx="150" cy="150" r="5" fill="#fff"/></g>
+  </svg><div class="lbl" id="qzLbl">Your light</div></div>
+  <div class="qz-card" id="qzCard" aria-live="polite"></div></div>`;
+}
+function initGame(){
+  const root=$('#qz',room);if(!root)return;
+  const card=$('#qzCard',root),star=$('#qzStar',root),disk=$('#qzDisk',root),lbl=$('#qzLbl',root);
+  let ang=0,dist=88,G=null;
+  (function orbit(){if(!root.isConnected)return;if(!RM)ang=(ang+.45)%360;dist+=((38+(G?G.h:.5)*100)-dist)*.05;
+    star.setAttribute('transform',`rotate(${ang.toFixed(2)} 150 150) translate(${dist.toFixed(2)} 0)`);disk.setAttribute('transform',`rotate(${(-ang*.3).toFixed(2)} 150 150)`);requestAnimationFrame(orbit);})();
+  let best=0;try{best=+localStorage.getItem('quasar-best')||0;}catch(e){}
+  const setLight=h=>{G.h=clamp(h,.02,1);star.style.opacity=(.35+G.h*.65).toFixed(2);
+    lbl.textContent=G.h<.25?'Near the horizon':G.h<.6?'Your light':'Escaping';};
+  function intro(){
+    qzKey=e=>{if(e.key==='Enter'&&!e.target.matches('a,button,input')){e.preventDefault();start();}};
+    card.innerHTML=`<p class="h3">How it works</p><p class="qz-q">Ten questions. Twenty seconds each.</p>
+    <ul class="clean"><li>Right answer: +100, plus up to +50 for speed</li><li>Streaks multiply your light</li><li>Use 1 to 4 on the keyboard, Enter for next</li></ul>
+    ${best?`<p class="pp-count" style="margin-top:18px!important">Your best: ${best} luminosity</p>`:''}
+    <div class="qz-foot"><span></span><button class="btn primary" id="qzGo">Ignite →</button></div>`;
+    $('#qzGo',card).addEventListener('click',start);
+  }
+  function start(){G={i:0,score:0,ok:0,streak:0,maxStreak:0,h:.5,set:shuffle(QUIZ).slice(0,QN),miss:[]};setLight(.5);ask();}
+  function ask(){
+    const Q=G.set[G.i],opts=shuffle(Q.a.map((t,k)=>({t,ok:k===0})));G.opts=opts;G.done=false;G.t0=performance.now();
+    card.innerHTML=`<div class="qz-hud"><span>Question <b>${G.i+1}</b> / ${QN}</span><span>Luminosity <b id="qzScore">${G.score}</b></span><span class="qz-streak">${G.streak>1?'×'+G.streak+' streak':''}</span></div>
+    <div class="qz-time"><i id="qzBar"></i></div><p class="qz-q">${Q.q}</p>
+    <div class="qz-opts">${opts.map((o,k)=>`<button class="qz-opt" data-k="${k}"><kbd>${k+1}</kbd><span>${o.t}</span></button>`).join('')}</div><div id="qzAfter"></div>`;
+    $$('.qz-opt',card).forEach(b=>b.addEventListener('click',()=>answer(+b.dataset.k)));
+    qzKey=e=>{if(G.done){if(e.key==='Enter'){e.preventDefault();next();}return;}const k=+e.key-1;if(k>=0&&k<4){e.preventDefault();answer(k);}};
+    const bar=$('#qzBar',card);
+    (function tick(){if(!root.isConnected||G.done||!card.contains(bar))return;const left=1-(performance.now()-G.t0)/(QT*1000);bar.style.transform=`scaleX(${Math.max(0,left).toFixed(4)})`;if(left<=0){answer(-1);return;}requestAnimationFrame(tick);})();
+  }
+  function answer(k){
+    if(G.done)return;G.done=true;const Q=G.set[G.i],good=k>=0&&G.opts[k].ok,btns=$$('.qz-opt',card);
+    btns.forEach((b,j)=>{b.disabled=true;if(G.opts[j].ok)b.classList.add('ok');else if(j===k)b.classList.add('no');});
+    if(good){const left=Math.max(0,1-(performance.now()-G.t0)/(QT*1000));G.streak++;G.maxStreak=Math.max(G.maxStreak,G.streak);G.ok++;
+      const pts=100+Math.round(50*left)+(G.streak>1?25*(G.streak-1):0);G.score+=pts;setLight(G.h+.12);
+      const pop=document.createElement('span');pop.className='qz-pop';pop.textContent='+'+pts;root.querySelector('.qz-vis').appendChild(pop);setTimeout(()=>pop.remove(),1000);
+    }else{G.streak=0;G.miss.push(Q);setLight(G.h-.17);}
+    $('#qzScore',card).textContent=G.score;
+    $('#qzAfter',card).innerHTML=`<div class="qz-why"><p class="h3">${good?'Right. The light escapes.':k<0?'Time ran out. The pull wins this one.':'Pulled in.'}</p><p>${Q.e}</p></div>
+    <div class="qz-foot"><a href="#/${Q.go}" class="tiny" style="margin:0">Read more →</a><button class="btn primary" id="qzNext">${G.i+1<QN?'Next →':'See your light →'}</button></div>`;
+    const nb=$('#qzNext',card);nb.addEventListener('click',next);nb.focus({preventScroll:true});
+  }
+  function next(){G.i++;if(G.i<QN)ask();else result();}
+  function result(){
+    const r=RANKS.filter(x=>G.ok>=x[0]).pop(),nb=G.score>best;if(nb){best=G.score;try{localStorage.setItem('quasar-best',String(best));}catch(e){}}
+    setLight(G.ok>=9?1:G.h);
+    card.innerHTML=`<p class="h3">Your light · ${G.ok} of ${QN}</p><p class="qz-big">${r[1]}</p><p>${r[2]}</p>
+    <div class="qz-stats"><span><b>${G.score}</b>Luminosity</span><span><b>${G.ok}/${QN}</b>Correct</span><span><b>×${G.maxStreak}</b>Best streak</span><span><b>${best}</b>${nb?'New best':'Your best'}</span></div>
+    ${G.miss.length?`<p class="h3" style="margin-top:8px">Concepts to revisit</p><ul class="qz-miss">${G.miss.map(m=>`<li>${m.q} <a href="#/${m.go}" style="color:var(--gold)">Read →</a></li>`).join('')}</ul>`:''}
+    <div class="qz-foot"><button class="chip" id="qzShare">Copy my result</button><button class="btn primary" id="qzAgain">Play again ↻</button></div>`;
+    $('#qzAgain',card).addEventListener('click',start);
+    $('#qzShare',card).addEventListener('click',()=>{const t=`I scored ${G.score} luminosity (${G.ok}/${QN}) and ranked "${r[1]}" in Escape the Black Hole, The Quasar Lab. ${location.href.split('#')[0]}#/game`;
+      (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Result copied. Share the light.'),()=>toast(t));});
+    qzKey=e=>{if(e.key==='Enter'&&!e.target.matches('a,button,input')){e.preventDefault();start();}};
+    $('#qzAgain',card).focus({preventScroll:true});
+  }
+  G={h:.5};setLight(.5);intro();
+}
+const PAGE_INIT={people:initPeople,game:initGame};
+
+/* =====================================================================
+   INTERACTION LAYER · cursor, magnetic buttons, nav scramble
+   ===================================================================== */
+if(matchMedia('(pointer: fine)').matches&&!RM){
+  const cur=document.createElement('div');cur.id='cur';cur.setAttribute('aria-hidden','true');document.body.appendChild(cur);
+  let cx=-99,cy=-99,tx=-99,ty=-99;
+  addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;cur.classList.add('on');cur.classList.toggle('big',!!e.target.closest('a,button,input,.pp-node,.blabel'));});
+  addEventListener('pointerdown',()=>cur.classList.add('down'));addEventListener('pointerup',()=>cur.classList.remove('down'));
+  document.addEventListener('pointerleave',()=>cur.classList.remove('on'));
+  (function loop(){cx+=(tx-cx)*.22;cy+=(ty-cy)*.22;cur.style.transform=`translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0)`;requestAnimationFrame(loop);})();
+  document.addEventListener('pointermove',e=>{const b=e.target.closest('.btn');if(!b)return;const r=b.getBoundingClientRect();
+    b.style.transform=`translate(${((e.clientX-r.left)/r.width-.5)*14}px,${((e.clientY-r.top)/r.height-.5)*10}px)`;});
+  document.addEventListener('pointerout',e=>{const b=e.target.closest('.btn');if(b&&!b.contains(e.relatedTarget))b.style.transform='';});
+  const GLY='QUASR*+/#01';
+  $$('#nav a').forEach(a=>{const o=a.textContent;a.addEventListener('mouseenter',()=>{let f=0;const id=setInterval(()=>{f++;a.textContent=o.split('').map((c,i)=>i<f/2?c:GLY[Math.floor(Math.random()*GLY.length)]).join('');if(f/2>=o.length){clearInterval(id);a.textContent=o;}},28);});});
+}
+const PAGES={projects:renderProjects,method:renderMethod,research:renderResearch,about:renderAbout,people:renderPeople,game:renderGame,events:renderEvents,journal:renderJournal,collaborate:renderCollab};
 
 const room=$('#room'),roomBody=$('#roomBody'),roomScroll=$('#roomScroll');
 let lastFocus=null,closeT=0;
@@ -779,7 +1101,7 @@ function route(){
     }else openRoom(renderProject(p),p.color,'projects');
     return;
   }
-  if(PAGES[a]){unfly();openRoom(PAGES[a](),'#ffb347',a);}else closeRoom();
+  if(PAGES[a]){unfly();openRoom(PAGES[a](b),a==='people'?'#9b6bff':'#ffb347',a);if(PAGE_INIT[a])PAGE_INIT[a](b);}else closeRoom();
 }
 
 /* =====================================================================
