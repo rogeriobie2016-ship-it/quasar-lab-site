@@ -387,6 +387,14 @@ h1 em,h2 em,h3 em,.room-inner h1 em{font-family:var(--it);font-style:italic;font
 .pp-panel blockquote{border-left:3px solid var(--pc);padding:4px 0 4px 16px;margin:20px 0;font:400 italic 1.3rem/1.35 var(--it);color:var(--cream)}
 .pp-panel cite{display:block;margin-top:8px;font:500 .58rem/1.4 var(--mono);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .room-inner .pp-links a{color:var(--pc)}
+.mail{padding:18px 18px 6px;border:1px solid var(--line);border-radius:14px;background:rgba(5,3,7,.55)}
+.room-inner .mail p{margin:0 0 12px;font-size:.95rem;line-height:1.6}
+.room-inner .mail .mail-meta{font:500 .74rem/1.5 var(--mono);letter-spacing:.02em;color:var(--dim)}
+.room-inner .mail .mail-art{font:400 italic 1.5rem/1.25 var(--it);color:var(--cream)}
+.mail-fwd{margin-top:18px;padding-left:14px;border-left:2px solid var(--pc)}
+.mail dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0 0 14px;font:500 .78rem/1.5 var(--mono)}
+.mail dt{color:var(--dim)}
+.mail dd{margin:0;color:var(--cream)}
 .pp-nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
 
 /* ---------- game ---------- */
@@ -863,11 +871,21 @@ function renderCollab(){
    ===================================================================== */
 const PEOPLE=[
   {id:'sultan',name:'Sultan Sharrief',role:'Founder & director',group:'founder',color:'#ffb347',initials:'SS',
-   line:'Filmmaker, XR designer, community organizer. A mad scientist, with a method.',
-   bio:["Sultan makes films, XR worlds and community events, and founded The Quasar Lab at MIT in 2018. His first feature, <i>Bilal's Stand</i>, premiered at the Sundance Film Festival in 2010. It grew out of Street Cred, the Detroit youth media program he ran with Allied Media Projects, and he spent years teaching media to high school students in Detroit.",
-        "He studied film at the University of Michigan and earned an MS in Comparative Media Studies at MIT, where he started the lab. He is a PhD candidate at USC Media Arts + Practice. His dissertation, <i>Quasar Physics, New Dimensions of Decolonial Design</i>, includes a virtual reality data visualization musical.",
-        "His HIIPE design method draws on Sufi practice, and one of his experiments imagines dancing with holograms of ancestors drawn from DNA results. His USC directory bio is an art piece of its own: a live email to the department chair about how to write a bio. He also founded the Michigan Ice Carving Team."],
-   quote:{t:"I've done lots of random things and the notion of relevance seems too judgemental.",c:'Sultan, USC MA+P directory bio'},
+   line:'',bio:[],quote:null,
+   mail:`<p>Dear Web Administrator,</p>
+<p>Please include the bio below for PhD student Sultan Sharrief.<br>Thank you.</p>
+<p>Sincerely,<br>Department Chair</p>
+<div class="mail-fwd"><p class="mail-meta">Begin forwarded message:</p>
+<dl><dt>From:</dt><dd>Sultan Sharrief</dd><dt>Subject:</dt><dd>Re: Bio and Image for MA+P website</dd></dl>
+<p class="mail-meta">Bio:</p>
+<p class="mail-art">I am making Art . . .</p>
+<p>Hi (___Department Chair__)</p>
+<p>I've attempted a draft bio below, but I'm not sure what philosophy should be used for writing a bio for the iMAP website. How am I supposed to represent myself? I don't know if I'm prepared for the level of identity editing necessary to be concise. Like all the amazing folks in the department, I've done lots of random things and the notion of "relevance" seems too judgemental. I'm trying to be kind to myself as of late.</p>
+<p>I deleted a whole paragraph about teaching media at a High School in Detroit and running a youth program for 10 years. But there's no quick way to explain all that. I had another version that started with "Sultan Sharrief is a Mad Scientist, but there is a method to his madness"...then went on to try to sum up the HIIPE Sufi Design methodology and dancing with holograms of my ancestors based on DNA results. But I thought maybe that was too out there (and ironically without much method to it). Maybe since technically we're in a School of Cinematic Arts I should maybe/ probably mention that I made several movies?? So I edited another to talk about some movie stuff, getting a BA in Film at U of Michigan, premiering my first feature at Sundance FF, getting a Masters at MIT in Comparative Media where I created my own LAb, a little about the Virtual Reality Data Visualization Musical I'm working on for my dissertation project. I ended it with a quirky line about founding the Michigan Ice Carving Team. People like when you do that, right?</p>
+<p>Then it hit me that it could be interesting to make another one of my live email art pieces in the form of an email to a Department Chair about the best philosophy for writing a bio. Which breaks the fourth wall and includes the above sentences as the part of the bio. That one is my favorite, but again, not sure if it's too out there. :-) LMK.</p>
+<p>Peace and Love,</p>
+<p>Sultan</p>
+<p class="mail-meta">-------------------End Bio</p></div>`,
    tags:['BA Film · University of Michigan','MS Comparative Media · MIT','PhD candidate · USC MA+P','Applied Imagination Fellow · ASU CSI','Reality Hack'],
    links:[['USC MA+P directory','https://map.usc.edu/phds/']],img:''},
   {id:'you',name:'[[Your name]]',role:'[[Your role at the lab]]',group:'team',color:'#9b6bff',initials:'+1',
@@ -898,12 +916,12 @@ function initPeople(slug){
   const root=$('#pp',room);if(!root)return;
   const stage=$('#ppStage',root),panel=$('#ppPanel',root),nodes=$$('.pp-node',root),cards=$$('.pp-card[data-id]',root);
   let sel=PEOPLE.some(p=>p.id===slug)?slug:PEOPLE[0].id,group='all',q='',spin=0,vel=0,hover=false,drag=null;
-  const vis=()=>PEOPLE.filter(p=>(group==='all'||p.group===group)&&(!q||plain([p.name,p.role,p.line,p.tags.join(' '),p.bio.join(' ')].join(' ')).toLowerCase().includes(q)));
+  const vis=()=>PEOPLE.filter(p=>(group==='all'||p.group===group)&&(!q||plain([p.name,p.role,p.line,p.tags.join(' '),p.bio.join(' '),p.mail||''].join(' ')).toLowerCase().includes(q)));
   function show(id,scroll){
     const p=PEOPLE.find(x=>x.id===id);if(!p)return;sel=id;
     panel.style.setProperty('--pc',p.color);
     panel.innerHTML=`<div class="pp-pin"><div class="pp-head">${avatar(p)}<div><p class="pp-role">${fx(p.role)}</p><h2>${fx(p.name)}</h2></div></div>
-    <p class="pp-line">${fx(p.line)}</p>${p.bio.map(b=>`<p>${fx(b)}</p>`).join('')}
+    ${p.line?`<p class="pp-line">${fx(p.line)}</p>`:''}${p.mail?`<div class="mail">${p.mail}</div>`:p.bio.map(b=>`<p>${fx(b)}</p>`).join('')}
     ${p.quote?`<blockquote>“${p.quote.t}”<cite>${p.quote.c}</cite></blockquote>`:''}
     <div class="tags">${p.tags.map(t=>`<span>${fx(t)}</span>`).join('')}</div>
     ${p.links.length?`<p class="pp-links" style="margin-top:16px">${p.links.map(l=>`<a href="${l[1]}" target="_blank" rel="noopener">${l[0]} ↗</a>`).join(' · ')}</p>`:''}
