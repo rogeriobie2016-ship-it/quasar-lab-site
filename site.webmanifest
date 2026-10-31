@@ -1,11 +1,11 @@
 {
   "name": "The Quasar Lab",
   "short_name": "Quasar Lab",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#050307",
   "theme_color": "#050307",
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

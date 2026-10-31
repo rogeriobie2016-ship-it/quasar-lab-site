@@ -9,12 +9,15 @@ Single-page site for The Quasar Lab, a research and design lab merging film, mus
 - `index.html`: the whole site
 - `404.html`: not-found page
 - `favicon.svg`, `site.webmanifest`: icon and app metadata
-- `_headers`: Cloudflare Pages response headers (noindex, no framing)
+- `_headers`: Cloudflare Pages response headers (noindex, no framing); ignored by GitHub Pages
 - `robots.txt`: blocks all crawlers
+- `.nojekyll`: tells GitHub Pages to serve files as-is
 
 ## How deploys work
 
-The repo is connected to Cloudflare Pages. Pushing to `main` deploys to production. Pushing any other branch creates a preview deployment. Both are protected by Cloudflare Access (email one-time PIN).
+Live at https://rogeriobie2016-ship-it.github.io/quasar-lab-site/ via GitHub Pages (branch `main`, folder `/`). Pushing to `main` deploys; the site updates within a minute or two. The `noindex` meta tag keeps search engines from listing it, but anyone with the link can open it.
+
+Paths are relative, so the same files also work on Cloudflare Pages if the site moves there later.
 
 ```bash
 git add .
