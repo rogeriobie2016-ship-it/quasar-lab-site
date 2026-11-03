@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Quasar Flight · The Quasar Lab</title>
+<meta name="description" content="An immersive, ray traced flight around a quasar black hole. 360 view, all-sky map and WebXR VR, in the browser.">
+<meta property="og:title" content="Quasar Flight · The Quasar Lab">
+<meta property="og:description" content="Fly around a quasar black hole: orbit, flyby, plunge or hover. Real light bending, Doppler beaming and time dilation. 360 and VR.">
+<meta name="theme-color" content="#050307">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Michroma&display=swap" rel="stylesheet">
+<!--
+  THE QUASAR LAB · Quasar Flight
+  A ray traced Schwarzschild black hole with an accretion disk and twin jets.
+  Light paths are integrated per pixel on the GPU; the camera follows real
+  timelike geodesics (orbit, flyby, plunge) or hovers. 360 drag, all-sky map,
+  phone gyro and WebXR immersive VR.
+  Units: rs = 1 (Schwarzschild radius), c = 1. Mass for the readouts: 1e9 Suns.
+-->
+<style>
+:root{color-scheme:dark;--void:#050307;--ink:#0d0a12;--ink2:#151019;--cream:#f4ead8;--mute:#bdb0a2;--dim:#857985;--gold:#ffb347;--molten:#ff7a1a;--violet:#9b6bff;--electric:#4d7cff;--line:rgba(244,234,216,.14);
+  --hd:'Michroma',system-ui,sans-serif;--lc:'Antonio','Arial Narrow',sans-serif;--sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--ease:cubic-bezier(.2,.75,.15,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--void);overflow:hidden}
+body{color:var(--cream);font:400 15px/1.55 var(--sans);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#c{position:fixed;inset:0;width:100vw;height:100vh;display:block;touch-action:none;cursor:grab}
+#c.drag{cursor:grabbing}
+.ui{position:fixed;z-index:5;transition:opacity .5s var(--ease),transform .5s var(--ease)}
+body.clean .ui:not(.keep){opacity:0;pointer-events:none}
+
+/* top bar */
+.top{left:0;right:0;top:0;display:flex;align-items:center;gap:14px;padding:max(14px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 14px max(18px,env(safe-area-inset-left));background:linear-gradient(rgba(5,3,7,.8),transparent);pointer-events:none}
+.top>*{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:400 .7rem/1 var(--hd);letter-spacing:.14em;text-transform:uppercase}
+.brand svg{width:26px;height:26px}
+.ttl{font:600 .95rem/1 var(--lc);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:10px}
+.ttl::before{content:"";width:34px;height:11px;border-radius:999px 0 0 999px;background:currentColor}
+.top .sp{flex:1}
+.pill{font:600 .8rem/1 var(--lc);letter-spacing:.16em;text-transform:uppercase;padding:11px 16px;border-radius:999px;border:1.5px solid var(--line);background:rgba(13,10,18,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .3s,border-color .3s,color .3s;white-space:nowrap}
+.pill:hover{border-color:rgba(255,179,71,.6)}
+.pill[aria-pressed=true]{background:rgba(255,179,71,.16);border-color:var(--gold);color:#fff}
+.pill.vr{background:var(--gold);color:#140a02;border-color:var(--gold);border-radius:999px 8px 8px 999px}
+.pill.vr:hover{background:#ffc56b}
+.pill[disabled]{opacity:.4;cursor:not-allowed}
+
+/* telemetry */
+.tele{right:max(18px,env(safe-area-inset-right));top:74px;width:252px;border:1px solid var(--line);border-radius:18px 6px 18px 6px;background:rgba(9,7,13,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:14px 16px 12px;font:400 .74rem/1.35 var(--mono)}
+.tele h2{font:600 .78rem/1 var(--lc);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);display:flex;justify-content:space-between;margin-bottom:10px}
+.tele h2 small{color:var(--dim);font:400 .62rem/1 var(--mono);letter-spacing:.08em;text-transform:none}
+.tele dl{display:grid;grid-template-columns:auto 1fr;gap:5px 10px}
+.tele dt{color:var(--dim);text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;align-self:center}
+.tele dd{text-align:right;color:var(--cream);font-variant-numeric:tabular-nums}
+.tele dd b{color:var(--gold);font-weight:500}
+.tele .bar{grid-column:1/-1;height:4px;border-radius:4px;background:rgba(244,234,216,.08);overflow:hidden;margin:2px 0 4px}
+.tele .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--electric),var(--violet),var(--gold));transition:width .2s linear}
+#map{display:block;width:100%;aspect-ratio:1;margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.maplbl{display:flex;justify-content:space-between;color:var(--dim);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+
+/* caption */
+.cap{left:50%;bottom:132px;transform:translateX(-50%);width:min(640px,calc(100vw - 36px));text-align:center;pointer-events:none}
+.cap p{display:inline-block;font:400 1rem/1.5 var(--sans);color:var(--cream);background:rgba(5,3,7,.58);border-left:2px solid var(--gold);padding:10px 16px;border-radius:4px 12px 12px 4px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transform:translateY(8px);transition:opacity .6s var(--ease),transform .6s var(--ease);text-align:left}
+.cap p.on{opacity:1;transform:none}
+
+/* control deck */
+.deck{left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;width:min(1100px,calc(100vw - 24px))}
+.seg{display:flex;border-radius:999px 8px 8px 999px;overflow:hidden;border:1.5px solid var(--line);background:rgba(13,10,18,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.seg button{font:700 .82rem/1 var(--lc);letter-spacing:.16em;text-transform:uppercase;padding:12px 15px;color:var(--mute);transition:background .3s,color .3s}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{color:var(--cream)}
+.seg button[aria-pressed=true]{background:var(--gold);color:#140a02}
+.seg.alt{border-radius:8px}
+.seg.alt button[aria-pressed=true]{background:rgba(155,107,255,.35);color:#fff}
+.rng{display:flex;align-items:center;gap:8px;font:600 .74rem/1 var(--lc);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding:6px 14px;border-radius:8px;border:1.5px solid var(--line);background:rgba(13,10,18,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.rng output{font:400 .72rem/1 var(--mono);color:var(--cream);min-width:5.5ch;text-align:right;letter-spacing:0;text-transform:none}
+input[type=range]{-webkit-appearance:none;appearance:none;width:110px;height:24px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:rgba(244,234,216,.2);border-radius:3px}
+input[type=range]::-moz-range-track{height:3px;background:rgba(244,234,216,.2);border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);margin-top:-5.5px;border:0}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--gold);border:0}
+#rngR[hidden]{display:none}
+
+/* overlays */
+.ov{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at center,rgba(5,3,7,.35),rgba(5,3,7,.88) 70%);transition:opacity .7s var(--ease),visibility .7s}
+.ov[hidden]{display:grid;opacity:0;visibility:hidden;pointer-events:none}
+.card{width:min(560px,100%);border:1px solid var(--line);border-radius:28px 8px 28px 8px;background:rgba(9,7,13,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:clamp(22px,4vw,36px)}
+.eyebrow{font:600 .9rem/1.2 var(--lc);letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.eyebrow::before{content:"";width:34px;height:11px;border-radius:999px 0 0 999px;background:currentColor}
+.card h1{font:400 clamp(1.3rem,3.6vw,2rem)/1.25 var(--hd);letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
+.card h1 em{font-style:normal;background:linear-gradient(100deg,#ffd98a,var(--gold) 40%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card p{color:var(--mute);margin-bottom:12px;font-weight:300}
+.card p strong{color:var(--cream);font-weight:500}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font:400 .72rem/1.5 var(--mono);color:var(--dim);margin:14px 0 20px}
+.keys kbd{font:500 .7rem/1 var(--mono);color:var(--cream);border:1px solid var(--line);border-radius:5px;padding:3px 6px;justify-self:start}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 .95rem/1 var(--lc);text-transform:uppercase;letter-spacing:.16em;padding:15px 24px;border-radius:999px;text-decoration:none;border:1.5px solid var(--line);transition:background .3s,border-color .3s,box-shadow .3s}
+.btn.primary{background:var(--gold);color:#140a02;border-color:var(--gold);border-radius:999px 8px 8px 999px}
+.btn.primary:hover{background:#ffc56b;box-shadow:0 0 0 3px rgba(255,179,71,.25)}
+.btn.ghost:hover{border-color:rgba(255,179,71,.6)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.tiny{font:400 .68rem/1.5 var(--mono);color:var(--dim);margin-top:16px!important}
+.err{color:#ff9b7a}
+
+@media (max-width:860px){
+  .tele{top:64px;right:10px;width:200px;padding:10px 12px;font-size:.66rem}
+  .tele h2 small,.tele .au{display:none}
+  .tele.min dl,.tele.min .maplbl{display:none}
+  #map{margin-top:6px}
+  .ttl{display:none}
+  .cap{bottom:178px}
+  .cap p{font-size:.9rem}
+  .seg button{padding:11px 11px;font-size:.76rem}
+  .rng{padding:4px 10px}
+  input[type=range]{width:80px}
+  .pill{padding:10px 12px;font-size:.74rem}
+}
+@media (max-width:520px){
+  .brand span{display:none}
+  .top{gap:8px}
+  .cap{bottom:200px}
+}
+@media (prefers-reduced-motion:reduce){.ui,.cap p,.ov{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="qmark" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="#050307" stroke="#ffb347" stroke-width="1.6"/><ellipse cx="16" cy="16" rx="14" ry="4.2" fill="none" stroke="#ff7a1a" stroke-width="1.4" transform="rotate(-18 16 16)"/><path d="M16 1v6M16 25v6" stroke="#9b6bff" stroke-width="1.6" stroke-linecap="round"/></symbol></svg>
+
+<canvas id="c" aria-label="Ray traced view of a quasar black hole. Drag to look around."></canvas>
+
+<header class="ui top">
+  <a class="brand" href="./" aria-label="Back to The Quasar Lab"><svg><use href="#qmark"/></svg><span>The Quasar Lab</span></a>
+  <span class="ttl">Quasar Flight</span>
+  <span class="sp"></span>
+  <button class="pill" id="bGyro" aria-pressed="false" hidden>Gyro</button>
+  <button class="pill" id="bPano" aria-pressed="false" title="All-sky 360 map (P)">360 map</button>
+  <button class="pill" id="bFull" title="Fullscreen (F)">Full</button>
+  <button class="pill" id="bClean" aria-pressed="false" title="Hide the interface (H)">Clean</button>
+  <button class="pill vr" id="bVR" disabled title="Immersive VR (V)">VR</button>
+</header>
+
+<aside class="ui tele" id="tele" aria-label="Telemetry">
+  <h2>Telemetry <small>Q-1 · 10<sup>9</sup> M☉</small></h2>
+  <dl>
+    <dt>Distance</dt><dd><b id="tR">0</b> rs<span class="au"> · <span id="tAU">0</span> AU</span></dd>
+    <dt>Speed</dt><dd><b id="tV">0</b>% c</dd>
+    <div class="bar" aria-hidden="true"><i id="tVb"></i></div>
+    <dt>Your clock</dt><dd id="tTau">0</dd>
+    <dt>Far clock</dt><dd id="tT">0</dd>
+    <dt>You lag by</dt><dd id="tLag">0</dd>
+    <dt>Time rate</dt><dd id="tRate">1.00×</dd>
+    <dt>Blueshift</dt><dd id="tD">1.00×</dd>
+  </dl>
+  <canvas id="map" width="440" height="440" aria-label="Track view seen from above"></canvas>
+  <div class="maplbl"><span>Track · top view</span><span id="tPhase">Approach</span></div>
+</aside>
+
+<div class="ui cap" aria-live="polite"><p id="cap"></p></div>
+
+<nav class="ui deck" aria-label="Flight controls">
+  <div class="seg" role="group" aria-label="Scenario">
+    <button data-sc="orbit" aria-pressed="true">Orbit</button>
+    <button data-sc="flyby" aria-pressed="false">Flyby</button>
+    <button data-sc="plunge" aria-pressed="false">Plunge</button>
+    <button data-sc="hover" aria-pressed="false">Hover</button>
+  </div>
+  <div class="seg alt" role="group" aria-label="Playback">
+    <button id="bPlay" aria-pressed="false" title="Play or pause (Space)">Play</button>
+    <button id="bSpeed" title="Playback speed">1×</button>
+    <button id="bReset" title="Restart (R)">Restart</button>
+  </div>
+  <div class="seg alt" role="group" aria-label="Camera">
+    <button data-look="hole" aria-pressed="true" title="Keep the hole in view">At hole</button>
+    <button data-look="ahead" aria-pressed="false" title="Look along your direction of travel">Ahead</button>
+  </div>
+  <div class="seg alt" role="group" aria-label="Physics">
+    <button data-fx="lens" aria-pressed="true" title="Gravitational lensing (L)">Lensing</button>
+    <button data-fx="dopp" aria-pressed="true" title="Doppler and gravitational shifts (D)">Doppler</button>
+    <button data-fx="jets" aria-pressed="true" title="Relativistic jets (J)">Jets</button>
+  </div>
+  <label class="rng">Zoom <input type="range" id="iFov" min="10" max="120" value="75" step="1" aria-label="Field of view in degrees"><output id="oFov">75°</output></label>
+  <label class="rng" id="rngR" hidden>Hover at <input type="range" id="iR" min="0" max="1000" value="420" step="1" aria-label="Hover distance"><output id="oR">4.0 rs</output></label>
+</nav>
+
+<div class="ov" id="intro">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="introT">
+    <p class="eyebrow">The Quasar Lab · Flight deck</p>
+    <h1 id="introT">Fly around a <em>quasar</em></h1>
+    <p>Q-1 is a black hole of <strong>one billion suns</strong>, fed by a disk of gas hotter than the surface of the Sun, with twin jets along its spin axis. Every pixel here is a light ray traced backward through curved spacetime.</p>
+    <p>Pick a path: a steady <strong>orbit</strong>, a <strong>flyby</strong> that loops twice and escapes, a <strong>plunge</strong> past the event horizon, or <strong>hover</strong> on rockets. Drag to look in any direction, switch to the 360 map, or put on a headset.</p>
+    <div class="keys" aria-label="Keyboard shortcuts">
+      <kbd>Drag</kbd><span>look around 360°, wheel or pinch to zoom</span>
+      <kbd>1 to 4</kbd><span>orbit, flyby, plunge, hover</span>
+      <kbd>Space</kbd><span>play or pause · R restart</span>
+      <kbd>L D J</kbd><span>lensing, Doppler, jets on or off</span>
+      <kbd>P V H</kbd><span>360 map, VR, clean view</span>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="bGo">Begin flight</button>
+      <button class="btn ghost" id="bGoVR" hidden>Enter VR</button>
+    </div>
+    <p class="tiny" id="introNote">Simplified model: non-rotating (Schwarzschild) hole, thin disk. Readouts assume 10<sup>9</sup> solar masses, so 1 rs is about 19.7 AU.</p>
+  </div>
+</div>
+
+<div class="ov" id="end" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="endT">
+    <p class="eyebrow">Signal lost</p>
+    <h1 id="endT">Inside the <em>horizon</em></h1>
+    <p id="endTxt">You crossed the event horizon. From here every path, even for light, leads inward.</p>
+    <div class="row">
+      <button class="btn primary" data-go="plunge">Plunge again</button>
+      <button class="btn ghost" data-go="flyby">Try the flyby</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+(function(){
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const cv=$('#c');
+const gl=cv.getContext('webgl2',{antialias:false,alpha:false,depth:false,stencil:false,powerPreference:'high-performance',xrCompatible:true});
+if(!gl){$('#introNote').innerHTML='<span class="err">This flight needs WebGL 2, which this browser does not offer. Try a recent Chrome, Edge, Firefox or Safari.</span>';$('#bGo').disabled=true;return;}
+
+/* ---------------- shaders ---------------- */
+const VS=`#version 300 es
+out vec2 vUv;
+void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));vUv=p;gl_Position=vec4(p*2.-1.,0.,1.);}`;
+
+const FS_SCENE=`#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 o;
+uniform vec2 uRes;
+uniform vec3 uCam;
+uniform mat3 uRot;
+uniform mat4 uInvProj;
+uniform int uPano;
+uniform vec3 uBeta;
+uniform float uGrav;
+uniform float uTime;
+uniform float uLens;
+uniform float uDopp;
+uniform float uJets;
+uniform int uSteps;
+uniform int uOut;
+uniform float uPixAng;
+uniform float uFrame;
+const float RIN=3.0;
+const float ROUT=15.0;
+const float PI=3.14159265;
+
+float h13(vec3 p){p=fract(p*.1031);p+=dot(p,p.zyx+31.32);return fract((p.x+p.y)*p.z);}
+float vn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(mix(h13(i),h13(i+vec3(1,0,0)),f.x),mix(h13(i+vec3(0,1,0)),h13(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h13(i+vec3(0,0,1)),h13(i+vec3(1,0,1)),f.x),mix(h13(i+vec3(0,1,1)),h13(i+vec3(1)),f.x),f.y),f.z);}
+float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec3(1.7,9.2,3.1);a*=.5;}return s;}
+
+// blackbody chroma, Kelvin in, normalized RGB out
+vec3 bb(float t){
+  t=clamp(t,800.,40000.)/100.;
+  vec3 c;
+  c.r=t<=66.?1.:clamp(1.292936*pow(t-60.,-.1332047),0.,1.);
+  c.g=t<=66.?clamp(.3900816*log(t)-.6318414,0.,1.):clamp(1.129891*pow(t-60.,-.0755148),0.,1.);
+  c.b=t>=66.?1.:(t<=19.?0.:clamp(.5432068*log(t-10.)-1.1962541,0.,1.));
+  return c*c;
+}
+vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
+
+vec3 sky(vec3 d,float g){
+  vec3 c=vec3(0.);
+  vec3 gn=normalize(vec3(.35,1.,.25));
+  float lat=dot(d,gn);
+  float band=exp(-lat*lat*14.);
+  float m=fbm(d*3.5+3.);
+  float dust=smoothstep(.42,.72,fbm(d*8.+11.));
+  c+=bb(5600.*g)*band*(.2+.8*m*m)*(1.-.8*dust*band)*.11;
+  float nb=fbm(d*1.6+vec3(4.,1.,7.));
+  c+=vec3(.32,.16,.6)*pow(nb,3.)*.07+vec3(.7,.32,.1)*pow(fbm(d*2.3+9.),4.)*.05;
+  c*=min(g*g,6.);
+  float gb=min(g*g*g,25.);
+  for(int l=0;l<3;l++){
+    float sc=l==0?55.:(l==1?130.:290.);
+    vec3 q=d*sc;vec3 id=floor(q);vec3 f=fract(q);
+    float h=h13(id);
+    if(h<(l==0?.3:.45)){
+      vec3 off=vec3(h13(id+7.1),h13(id+3.3),h13(id+5.9))*.6+.2;
+      float dd=length(f-off);
+      float w=max(.05,uPixAng*sc*.75);
+      float mag=pow(h13(id+1.3),l==0?3.:5.)*(l==0?2.2:1.2)+.04;
+      float b=exp(-dd*dd/(w*w))*(.0025/(w*w))*mag;
+      float tk=mix(3000.,15000.,pow(h13(id+2.2),1.6));
+      c+=bb(tk*g)*b*gb;
+    }
+  }
+  return c;
+}
+
+vec4 disk(vec3 q,float r,vec3 rd,float gObs){
+  float x=RIN/r;
+  float tp=pow(x,.75)*pow(max(1.-sqrt(x),0.),.25)/.488;
+  float beta=min(.95,sqrt(.5/max(r-1.,.6)));
+  float gm=1./sqrt(1.-beta*beta);
+  vec3 vh=normalize(vec3(-q.z,0.,q.x));
+  float D=1./(gm*(1.+beta*dot(vh,rd)));
+  float g=mix(1.,D*sqrt(1.-1./r),uDopp)*gObs;
+  float om=sqrt(.5/(r*r*r));
+  float ang=atan(q.z,q.x)-om*uTime;
+  vec2 p2=vec2(cos(ang),sin(ang))*r;
+  float n=fbm(vec3(p2*.55,r*1.25));
+  float n2=vn(vec3(p2*2.4,r*6.));
+  float dens=(.12+2.2*n*n*n)*(.55+.9*n2*n2);
+  dens*=smoothstep(RIN-.15,RIN+.6,r)*(1.-smoothstep(ROUT-7.,ROUT,r));
+  float tk=3900.*max(tp,.25)*g;
+  float I=pow(max(tp,.05),1.5)*min(pow(g,4.),12.)*.5*smoothstep(600.,2400.,tk);
+  float a=clamp(dens*.9,0.,.96);
+  return vec4(bb(tk)*I*dens*1.3,a);
+}
+
+void main(){
+  vec3 vd;
+  if(uPano==1){
+    vec2 fc=gl_FragCoord.xy-uRes*.5;float s=min(uRes.x*.5,uRes.y);vec2 l=fc/s;
+    if(abs(l.x)>1.||abs(l.y)>.5){o=vec4(0.,0.,0.,1.);return;}
+    float lon=l.x*PI,lat=l.y*PI;
+    vd=vec3(sin(lon)*cos(lat),sin(lat),-cos(lon)*cos(lat));
+  }else{
+    vec4 q=uInvProj*vec4(vUv*2.-1.,-1.,1.);vd=normalize(q.xyz/q.w);
+  }
+  vec3 wd=normalize(uRot*vd);
+  // observer motion: aberration of the view ray and Doppler factor
+  float bl=length(uBeta);vec3 sd=wd;float Dobs=1.;
+  if(bl>1e-4){
+    vec3 n=uBeta/bl;float c=dot(wd,n);float cs=(c-bl)/(1.-bl*c);
+    vec3 pp=wd-c*n;float pl=length(pp);vec3 pn=pl>1e-6?pp/pl:vec3(0.);
+    sd=normalize(cs*n+sqrt(max(0.,1.-cs*cs))*pn);
+    Dobs=sqrt(1.-bl*bl)/(1.-bl*c);
+  }
+  float gObs=mix(1.,Dobs*uGrav,uDopp);
+  vec3 p=uCam,d=sd;
+  vec3 hh=cross(p,d);float h2=dot(hh,hh);
+  vec3 col=vec3(0.);float T=1.;bool hole=false;
+  float jit=h13(vec3(gl_FragCoord.xy,uFrame));
+  float far=max(120.,length(uCam)*1.6);
+  for(int i=0;i<700;i++){
+    if(i>=uSteps)break;
+    float r=length(p);
+    if(r<1.){hole=true;break;}
+    if(r>far&&dot(p,d)>0.)break;
+    float dt=(.055*(r-.95)+.01)*(i==0?(.3+jit):1.);
+    if(uJets>0.){
+      float ay=abs(p.y);
+      if(ay>1.1){
+        float w=.15+.07*ay;float rr2=dot(p.xz,p.xz);
+        float core=exp(-rr2/(w*w));float sheath=exp(-rr2/(w*w*5.))*.3;
+        if(core+sheath>2e-3){
+          float s=sign(p.y);
+          float Dj=1./(1.25*(1.+.6*s*d.y/length(d)));
+          Dj=mix(1.,Dj,uDopp)*gObs;
+          float fall=exp(-ay/34.)*smoothstep(1.1,4.5,ay);
+          float kn=.55+.45*sin(ay*.8-uTime*1.4+s*1.3);
+          vec3 jc=mix(vec3(.3,.45,1.),vec3(.95,.86,1.),core);
+          col+=T*jc*(core*kn+sheath)*fall*min(Dj*Dj,6.)*dt*uJets*.3;
+        }
+      }
+    }
+    vec3 a=-1.5*h2*p/pow(r,5.)*uLens;
+    vec3 d2=d+a*dt;vec3 p2=p+d2*dt;
+    if(p.y*p2.y<0.){
+      float f=p.y/(p.y-p2.y);vec3 q=mix(p,p2,f);float rq=length(q.xz);
+      if(rq>RIN-.2&&rq<ROUT){vec4 e=disk(q,rq,normalize(d2),gObs);col+=T*e.rgb;T*=1.-e.a;if(T<.01)break;}
+    }
+    p=p2;d=d2;
+  }
+  if(!hole)col+=T*sky(normalize(d),gObs);
+  if(uOut==1){o=vec4(pow(aces(col*.9),vec3(1./2.2)),1.);}
+  else if(uOut==2){col=min(col,vec3(60.));o=vec4(col/(1.+col),1.);}
+  else{o=vec4(min(col,vec3(6e4)),1.);}
+}`;
+
+const FS_COMP=`#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 o;
+uniform sampler2D tS;
+uniform int uEnc;
+uniform float uBloom;
+uniform float uFade;
+uniform float uRed;
+uniform float uTime;
+vec3 dec(vec3 c){return uEnc==1?c/max(1.-c,vec3(1e-3)):c;}
+vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
+void main(){
+  vec3 c=dec(texture(tS,vUv).rgb);
+  vec3 b=max(dec(textureLod(tS,vUv,2.).rgb)-1.,0.)*.22
+        +max(dec(textureLod(tS,vUv,4.).rgb)-.7,0.)*.26
+        +max(dec(textureLod(tS,vUv,6.).rgb)-.45,0.)*.3;
+  c+=b*uBloom;
+  c=mix(c,c*vec3(1.5,.32,.22),uRed);
+  c*=1.-uFade;
+  vec2 q=vUv-.5;c*=1.-dot(q,q)*.4;
+  c=pow(aces(c*.9),vec3(1./2.2));
+  float gr=fract(sin(dot(gl_FragCoord.xy+uTime,vec2(12.9898,78.233)))*43758.5453);
+  o=vec4(c+(gr-.5)*.006,1.);
+}`;
+
+function mkProg(fs){
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x;};
+  const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+  const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+  for(let i=0;i<n;i++){const a=gl.getActiveUniform(p,i);u[a.name]=gl.getUniformLocation(p,a.name);}
+  return{p,u};
+}
+let PS,PC;
+try{PS=mkProg(FS_SCENE);PC=mkProg(FS_COMP);}
+catch(e){console.error(e);$('#introNote').innerHTML='<span class="err">The GPU could not build the light tracer on this device.</span>';$('#bGo').disabled=true;return;}
+gl.bindVertexArray(gl.createVertexArray());
+
+/* ---------------- render target ---------------- */
+const hdrOK=!!gl.getExtension('EXT_color_buffer_float');
+let RT={w:0,h:0,tex:null,fbo:null,enc:!hdrOK};
+function makeRT(w,h){
+  if(RT.tex){gl.deleteTexture(RT.tex);gl.deleteFramebuffer(RT.fbo);}
+  const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  const alloc=hdr=>{if(hdr)gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,w,h,0,gl.RGBA,gl.HALF_FLOAT,null);else gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);};
+  alloc(!RT.enc);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE&&!RT.enc){RT.enc=true;alloc(false);}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  RT.w=w;RT.h=h;RT.tex=t;RT.fbo=f;
+}
+
+/* ---------------- small math ---------------- */
+const V={add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul:(a,s)=>[a[0]*s,a[1]*s,a[2]*s],
+  dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  len:a=>Math.hypot(a[0],a[1],a[2]),norm:a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l];}};
+// mat3 column-major
+const m3mul=(a,b)=>{const o=new Float32Array(9);for(let c=0;c<3;c++)for(let r=0;r<3;r++)o[c*3+r]=a[r]*b[c*3]+a[3+r]*b[c*3+1]+a[6+r]*b[c*3+2];return o;};
+const m3rotY=t=>{const c=Math.cos(t),s=Math.sin(t);return new Float32Array([c,0,-s,0,1,0,s,0,c]);};
+const m3rotX=t=>{const c=Math.cos(t),s=Math.sin(t);return new Float32Array([1,0,0,0,c,s,0,-s,c]);};
+const m3quat=q=>{const{x,y,z,w}=q;return new Float32Array([1-2*(y*y+z*z),2*(x*y+z*w),2*(x*z-y*w),2*(x*y-z*w),1-2*(x*x+z*z),2*(y*z+x*w),2*(x*z+y*w),2*(y*z-x*w),1-2*(x*x+y*y)]);};
+const I3=new Float32Array([1,0,0,0,1,0,0,0,1]);
+function inv4(m){const o=new Float32Array(16);
+  const a00=m[0],a01=m[1],a02=m[2],a03=m[3],a10=m[4],a11=m[5],a12=m[6],a13=m[7],a20=m[8],a21=m[9],a22=m[10],a23=m[11],a30=m[12],a31=m[13],a32=m[14],a33=m[15];
+  const b00=a00*a11-a01*a10,b01=a00*a12-a02*a10,b02=a00*a13-a03*a10,b03=a01*a12-a02*a11,b04=a01*a13-a03*a11,b05=a02*a13-a03*a12,
+        b06=a20*a31-a21*a30,b07=a20*a32-a22*a30,b08=a20*a33-a23*a30,b09=a21*a32-a22*a31,b10=a21*a33-a23*a31,b11=a22*a33-a23*a32;
+  let det=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06;if(!det)return o;det=1/det;
+  o[0]=(a11*b11-a12*b10+a13*b09)*det;o[1]=(a02*b10-a01*b11-a03*b09)*det;o[2]=(a31*b05-a32*b04+a33*b03)*det;o[3]=(a22*b04-a21*b05-a23*b03)*det;
+  o[4]=(a12*b08-a10*b11-a13*b07)*det;o[5]=(a00*b11-a02*b08+a03*b07)*det;o[6]=(a32*b02-a30*b05-a33*b01)*det;o[7]=(a20*b05-a22*b02+a23*b01)*det;
+  o[8]=(a10*b10-a11*b08+a13*b06)*det;o[9]=(a01*b08-a00*b10-a03*b06)*det;o[10]=(a30*b04-a31*b02+a33*b00)*det;o[11]=(a21*b02-a20*b04-a23*b00)*det;
+  o[12]=(a11*b07-a10*b09-a12*b06)*det;o[13]=(a00*b09-a01*b07+a02*b06)*det;o[14]=(a31*b01-a30*b03-a32*b00)*det;o[15]=(a20*b03-a21*b01+a22*b00)*det;
+  return o;}
+function perspInv(fovY,aspect){const t=Math.tan(fovY/2);return new Float32Array([t*aspect,0,0,0, 0,t,0,0, 0,0,0,0, 0,0,-1,1]);}
+// maps ndc (x,y,-1,1) to the view-space ray (x*t*aspect, y*t, -1)
+
+/* ---------------- flight physics: rs=1, M=0.5, c=1 ---------------- */
+const M=.5;
+const RS_AU=19.74, RS_C_SEC=9850; // 1e9 solar masses
+const SC={
+  orbit:{r0:7,incl:24*Math.PI/180,circ:true},
+  flyby:{r0:32,incl:18*Math.PI/180,E:1.0005,L:2.004},
+  plunge:{r0:32,incl:14*Math.PI/180,E:1.0005,L:1.9995},
+  hover:{incl:0}
+};
+const S={sc:'orbit',play:false,speed:1,look:'hole',lens:1,dopp:1,jets:1,pano:0,fov:75,yaw:0,pitch:0,hoverR:4,gyro:false,clean:false};
+const F={p:[7,0,0],u:[0,0,0],E:1,L:0,tau:0,tc:0,done:false,trail:[],rmin:99,peri:false,tt:0,maxD:1,cap:new Set()};
+const FX={lens:1,dopp:1,jets:1};
+
+function acc(p,u){const r=V.len(p);const c=V.cross(p,u);const L2=V.dot(c,c);const k=-M/(r*r*r)-3*M*L2/(r*r*r*r*r);return V.mul(p,k);}
+function rk4(h){const p=F.p,u=F.u;
+  const k1p=u,k1u=acc(p,u);
+  const p2=V.add(p,V.mul(k1p,h/2)),u2=V.add(u,V.mul(k1u,h/2)),k2u=acc(p2,u2);
+  const p3=V.add(p,V.mul(u2,h/2)),u3=V.add(u,V.mul(k2u,h/2)),k3u=acc(p3,u3);
+  const p4=V.add(p,V.mul(u3,h)),u4=V.add(u,V.mul(k3u,h)),k4u=acc(p4,u4);
+  F.p=V.add(p,V.mul(V.add(V.add(k1p,V.mul(u2,2)),V.add(V.mul(u3,2),u4)),h/6));
+  F.u=V.add(u,V.mul(V.add(V.add(k1u,V.mul(k2u,2)),V.add(V.mul(k3u,2),k4u)),h/6));
+}
+const tilt=(v,i)=>[v[0],-v[2]*Math.sin(i),v[2]*Math.cos(i)];
+function hoverPos(){const e=7*Math.PI/180;return[S.hoverR*Math.cos(e),S.hoverR*Math.sin(e),0];}
+function reset(sc){
+  S.sc=sc;const c=SC[sc];
+  Object.assign(F,{tau:0,tc:0,done:false,trail:[],rmin:99,peri:false,tt:0,maxD:1,cap:new Set()});
+  if(sc==='hover'){F.p=hoverPos();F.u=[0,0,0];F.E=Math.sqrt(1-1/S.hoverR);}
+  else if(c.circ){const r=c.r0,L=Math.sqrt(M*r*r/(r-3*M));F.L=L;F.p=[r,0,0];F.u=tilt([0,0,L/r],c.incl);F.E=Math.sqrt((1-1/r)*(1+L*L/(r*r)));}
+  else{const r=c.r0;const rd=-Math.sqrt(Math.max(0,c.E*c.E-(1-1/r)*(1+c.L*c.L/(r*r))));F.L=c.L;F.E=c.E;F.p=[r,0,0];F.u=tilt([rd,0,c.L/r],c.incl);}
+  look.f=null;S.yaw=0;S.pitch=0;
+  $('#end').hidden=true;
+  $$('[data-sc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===sc));
+  $('#rngR').hidden=sc!=='hover';
+  queueCap(START[sc]);
+}
+function stepFlight(dt){
+  if(!S.play||F.done)return;
+  F.tt+=dt;
+  let r=V.len(F.p);
+  if(S.sc==='hover'){
+    const rate=S.speed*6*Math.sqrt(r);const dtau=rate*dt;F.tau+=dtau;F.tc+=dtau/Math.sqrt(1-1/r);return;
+  }
+  let left=S.speed*5.5*Math.sqrt(Math.max(r,1.2))*dt,n=0;
+  while(left>0&&n<4000){
+    r=V.len(F.p);const h=Math.min(left,Math.max(.0004,.004*Math.pow(r,1.5)));
+    const ur=V.dot(F.u,F.p)/r;
+    rk4(h);left-=h;n++;F.tau+=h;
+    const rn=V.len(F.p);F.tc+=F.E/Math.max(1-1/rn,1e-4)*h;
+    if(rn<F.rmin)F.rmin=rn;
+    if(!F.peri&&ur<0&&V.dot(F.u,F.p)>0)F.peri=true;
+    if(rn<=1.0005){F.done=true;onHorizon();break;}
+    if(S.sc==='flyby'&&F.peri&&rn>40){F.done=true;onEscape();break;}
+  }
+}
+// local state seen by a static observer at r: speed, direction, gravitational blueshift
+function localState(){
+  const r=V.len(F.p),ah=Math.sqrt(Math.max(1-1/r,1e-5));
+  if(S.sc==='hover')return{r,beta:0,bv:[0,0,0],grav:1/ah,rate:1/ah,gam:1};
+  const gam=F.E/ah;const beta=Math.sqrt(Math.max(0,1-1/(gam*gam)));
+  const rh=V.mul(F.p,1/r);const ur=V.dot(F.u,rh);const ut=V.sub(F.u,V.mul(rh,ur));
+  const dir=V.norm(V.add(V.mul(rh,ur/ah),ut));
+  return{r,beta,bv:V.mul(dir,Math.min(beta,.985)),grav:1/ah,rate:F.E/Math.max(ah*ah,1e-5),gam};
+}
+
+/* ---------------- captions ---------------- */
+const START={
+  orbit:'Circular orbit at 7 rs, about 138 AU out, moving at 29% of light speed. Drag to look around.',
+  flyby:'Flyby: falling in from 32 rs on a path that whirls twice around the hole, then escapes.',
+  plunge:'Plunge: a path with a little too little angular momentum. After two loops there is no way back.',
+  hover:'Hovering on rockets at a fixed distance, not orbiting. Use the slider to go deeper.'
+};
+const CAPS=[
+  {id:'quasar',t:s=>F.tt>7,x:()=>'Q-1 is a quasar: its disk outshines a whole galaxy, and twin jets of plasma fire out along the spin axis at near light speed.'},
+  {id:'dopp',t:s=>F.tt>15&&s.r<16,x:()=>'The side of the disk turning toward you looks brighter and bluer, the receding side dims to red. That is relativistic Doppler beaming.'},
+  {id:'lens',t:s=>F.tt>23&&s.r<20,x:()=>'The far side of the disk appears above and below the shadow. Gravity bends its light up and over the hole toward you.'},
+  {id:'ring',t:s=>s.r<4.2||F.tt>31,x:()=>'The thin bright edge around the shadow is the photon ring: light that circled the hole once or more before reaching you.'},
+  {id:'fast',t:s=>s.beta>.45,x:s=>`Now at ${Math.round(s.beta*100)}% of light speed. The sky crowds toward your direction of travel and brightens there.`},
+  {id:'deep',t:s=>S.sc==='hover'&&s.r<1.7,x:()=>'Below the photon sphere at 1.5 rs, the whole outside universe shrinks into a bright circle overhead.'},
+  {id:'horz',t:s=>S.sc==='plunge'&&s.r<1.35,x:()=>'Approaching the event horizon at 1 rs. Light from behind you can no longer catch up.'}
+];
+let capQ=[],capT=0;
+function queueCap(t){if(!t)return;capQ.push(t);}
+function tickCaps(dt,s){
+  for(const c of CAPS){if(!F.cap.has(c.id)&&S.play&&c.t(s)){F.cap.add(c.id);queueCap(c.x(s));}}
+  capT-=dt;const el=$('#cap');
+  if(capT<=0){
+    if(capQ.length){el.textContent=capQ.shift();el.classList.add('on');capT=7.5;}
+    else if(el.classList.contains('on')){el.classList.remove('on');}
+  }
+}
+function fmtT(sec){
+  if(!isFinite(sec))return'∞';
+  const a=Math.abs(sec);
+  if(a<60)return a.toFixed(0)+' s';
+  if(a<3600)return(a/60).toFixed(1)+' min';
+  if(a<86400*2)return(a/3600).toFixed(1)+' h';
+  if(a<86400*800)return(a/86400).toFixed(1)+' days';
+  return(a/86400/365.25).toFixed(1)+' yr';
+}
+function onHorizon(){
+  const lag=(F.tc-F.tau)*RS_C_SEC;
+  $('#endTxt').textContent=`You crossed the event horizon after ${fmtT(F.tau*RS_C_SEC)} on your own clock. The far-away clock never sees you arrive: to the outside, your image freezes and fades at the edge.`;
+  setTimeout(()=>{$('#end').hidden=false;$('#end .btn').focus({preventScroll:true});},900);
+}
+function onEscape(){
+  queueCap(`Escaped. Your clock now lags the far-away clock by ${fmtT((F.tc-F.tau)*RS_C_SEC)}.`);
+  setTimeout(()=>{if(S.sc==='flyby'&&F.done){reset('flyby');}},9000);
+}
+
+/* ---------------- camera look ---------------- */
+const look={f:null,fixed:null};
+function camBasis(dt,st){
+  let tgt;
+  if(S.look==='ahead'&&st.beta>.01)tgt=V.norm(st.bv);
+  else{
+    // aim at where the hole appears: aberration shifts it toward the direction of travel
+    tgt=V.norm(V.mul(F.p,-1));const b=FX.dopp?st.beta:0;
+    if(b>.001){const n=V.norm(st.bv),c=V.dot(tgt,n),ca=(c+b)/(1+b*c);const pp=V.sub(tgt,V.mul(n,c));const pl=V.len(pp);
+      if(pl>1e-6)tgt=V.norm(V.add(V.mul(n,ca),V.mul(pp,Math.sqrt(Math.max(0,1-ca*ca))/pl)));}
+  }
+  if(!look.f)look.f=tgt;
+  const k=1-Math.exp(-dt*3);look.f=V.norm(V.add(look.f,V.mul(V.sub(tgt,look.f),k)));
+  const f=look.f;let up=[0,1,0];let rt=V.cross(f,up);if(V.len(rt)<1e-3)rt=V.cross(f,[1,0,0]);rt=V.norm(rt);up=V.cross(rt,f);
+  return new Float32Array([rt[0],rt[1],rt[2],up[0],up[1],up[2],-f[0],-f[1],-f[2]]);
+}
+
+/* ---------------- gyro (phone magic window) ---------------- */
+let gyroQ=null;
+function gyroMat(){
+  if(!gyroQ)return I3;
+  const{a,b,g}=gyroQ;const so=(screen.orientation&&screen.orientation.angle||window.orientation||0)*Math.PI/180;
+  // device orientation to camera (YXZ), as in common magic-window controllers
+  const x=b*Math.PI/180,y=a*Math.PI/180,z=-g*Math.PI/180;
+  const c1=Math.cos(x/2),c2=Math.cos(y/2),c3=Math.cos(z/2),s1=Math.sin(x/2),s2=Math.sin(y/2),s3=Math.sin(z/2);
+  let q={x:s1*c2*c3+c1*s2*s3,y:c1*s2*c3-s1*c2*s3,z:c1*c2*s3-s1*s2*c3,w:c1*c2*c3+s1*s2*s3};
+  const qm=(p,r)=>({x:p.x*r.w+p.w*r.x+p.y*r.z-p.z*r.y,y:p.y*r.w+p.w*r.y+p.z*r.x-p.x*r.z,z:p.z*r.w+p.w*r.z+p.x*r.y-p.y*r.x,w:p.w*r.w-p.x*r.x-p.y*r.y-p.z*r.z});
+  q=qm(q,{x:-Math.SQRT1_2,y:0,z:0,w:Math.SQRT1_2});
+  q=qm(q,{x:0,y:0,z:-Math.sin(so/2),w:Math.cos(so/2)});
+  return m3quat(q);
+}
+function onOri(e){if(e.alpha==null)return;gyroQ={a:e.alpha,b:e.beta,g:e.gamma};}
+async function toggleGyro(){
+  if(!S.gyro){
+    try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')return;}}catch(e){return;}
+    window.addEventListener('deviceorientation',onOri);S.gyro=true;S.yaw=0;S.pitch=0;
+  }else{window.removeEventListener('deviceorientation',onOri);S.gyro=false;gyroQ=null;}
+  $('#bGyro').setAttribute('aria-pressed',S.gyro);
+}
+
+/* ---------------- drawing ---------------- */
+let frame=0,clock=0;
+function setSceneUniforms(u,st,rot,invP,w,h,out,steps,pixAng,pano){
+  gl.uniform2f(u.uRes,w,h);
+  gl.uniform3fv(u.uCam,F.p);
+  gl.uniformMatrix3fv(u.uRot,false,rot);
+  gl.uniformMatrix4fv(u.uInvProj,false,invP);
+  gl.uniform1i(u.uPano,pano);
+  gl.uniform3fv(u.uBeta,FX.dopp>.5?st.bv:[0,0,0]);
+  gl.uniform1f(u.uGrav,st.grav);
+  gl.uniform1f(u.uTime,clock);
+  gl.uniform1f(u.uLens,FX.lens);gl.uniform1f(u.uDopp,FX.dopp);gl.uniform1f(u.uJets,FX.jets);
+  gl.uniform1i(u.uSteps,steps);gl.uniform1i(u.uOut,out);
+  gl.uniform1f(u.uPixAng,pixAng);gl.uniform1f(u.uFrame,frame%64);
+}
+let scale=Math.min(window.devicePixelRatio||1,1.5)*(matchMedia('(pointer:coarse)').matches?.55:.75);
+const maxScale=Math.min(window.devicePixelRatio||1,1.75),isTouch=matchMedia('(pointer:coarse)').matches;
+let ema=16.7,lastResize=0;
+function resize(){
+  const d=Math.min(window.devicePixelRatio||1,2);
+  const W=Math.round(innerWidth*d),H=Math.round(innerHeight*d);
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const w=Math.max(160,Math.round(innerWidth*scale)),h=Math.max(100,Math.round(innerHeight*scale));
+  if(w!==RT.w||h!==RT.h)makeRT(w,h);
+}
+function draw(dt,st){
+  resize();
+  const base=camBasis(dt,st);
+  const rot=m3mul(m3mul(base,m3rotY(S.yaw)),m3mul(m3rotX(S.pitch),gyroMat()));
+  const fov=S.fov*Math.PI/180;
+  gl.useProgram(PS.p);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,RT.fbo);gl.viewport(0,0,RT.w,RT.h);
+  setSceneUniforms(PS.u,st,rot,perspInv(fov,RT.w/RT.h),RT.w,RT.h,RT.enc?2:0,isTouch?300:440,S.pano?2*Math.PI/RT.w:2*Math.tan(fov/2)/RT.h,S.pano);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.bindTexture(gl.TEXTURE_2D,RT.tex);gl.generateMipmap(gl.TEXTURE_2D);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);
+  gl.useProgram(PC.p);
+  gl.uniform1i(PC.u.tS,0);gl.uniform1i(PC.u.uEnc,RT.enc?1:0);gl.uniform1f(PC.u.uBloom,1);
+  const fade=S.sc==='plunge'?Math.min(1,Math.max(0,(1.25-st.r)/.25)):0;
+  gl.uniform1f(PC.u.uFade,fade*.92);gl.uniform1f(PC.u.uRed,fade*.8);gl.uniform1f(PC.u.uTime,frame%97);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+}
+
+/* ---------------- telemetry + track map ---------------- */
+const mapC=$('#map'),mx=mapC.getContext('2d');
+let teleT=0,trailT=0;
+const el={R:$('#tR'),AU:$('#tAU'),V:$('#tV'),Vb:$('#tVb'),Tau:$('#tTau'),T:$('#tT'),Lag:$('#tLag'),Rate:$('#tRate'),D:$('#tD'),Ph:$('#tPhase')};
+function tele(dt,st){
+  trailT-=dt;if(trailT<=0&&S.play){trailT=.06;F.trail.push([F.p[0],F.p[2]]);if(F.trail.length>1600)F.trail.shift();}
+  teleT-=dt;if(teleT>0)return;teleT=.1;
+  const D=FX.dopp?st.grav*Math.sqrt((1+st.beta)/(1-st.beta)):1;
+  el.R.textContent=st.r.toFixed(st.r<10?2:1);el.AU.textContent=Math.round(st.r*RS_AU).toLocaleString('en');
+  el.V.textContent=Math.min(st.beta*100,99.9).toFixed(1);el.Vb.style.width=(st.beta*100).toFixed(1)+'%';
+  el.Tau.textContent=fmtT(F.tau*RS_C_SEC);el.T.textContent=F.done&&S.sc==='plunge'?'∞':fmtT(F.tc*RS_C_SEC);
+  el.Lag.textContent=F.done&&S.sc==='plunge'?'∞':fmtT((F.tc-F.tau)*RS_C_SEC);
+  el.Rate.textContent=(S.sc==='plunge'&&st.r<1.01)?'∞':(st.rate>99?st.rate.toFixed(0):st.rate.toFixed(2))+'×';
+  el.D.textContent=D>999?'>999×':D.toFixed(D>99?0:2)+'×';
+  el.Ph.textContent=S.sc==='hover'?'Hovering':F.done?(S.sc==='plunge'?'Inside horizon':'Escaped'):S.sc==='orbit'?'Orbiting':F.peri?'Outbound':st.r<3?'Whirl':'Inbound';
+  // map
+  const W=mapC.width,c=W/2;const span=S.sc==='orbit'?9.5:S.sc==='hover'?Math.max(5,S.hoverR*1.3):Math.max(8,Math.min(34,st.r*1.15));
+  const k=c/span;mx.clearRect(0,0,W,W);
+  mx.save();mx.translate(c,c);
+  const ring=(r,stroke,lw,dash)=>{mx.beginPath();mx.arc(0,0,r*k,0,Math.PI*2);mx.strokeStyle=stroke;mx.lineWidth=lw;mx.setLineDash(dash||[]);mx.stroke();};
+  const g=mx.createRadialGradient(0,0,3*k,0,0,15*k);g.addColorStop(0,'rgba(255,179,71,.35)');g.addColorStop(1,'rgba(255,122,26,0)');
+  mx.beginPath();mx.arc(0,0,15*k,0,Math.PI*2);mx.arc(0,0,3*k,0,Math.PI*2,true);mx.fillStyle=g;mx.fill('evenodd');
+  ring(1.5,'rgba(244,234,216,.5)',1.5,[4,5]);
+  mx.beginPath();mx.arc(0,0,k,0,Math.PI*2);mx.fillStyle='#000';mx.fill();ring(1,'#ff7a1a',2);
+  if(F.trail.length>1){mx.beginPath();F.trail.forEach((p,i)=>{const x=p[0]*k,y=p[1]*k;i?mx.lineTo(x,y):mx.moveTo(x,y);});mx.strokeStyle='rgba(155,107,255,.85)';mx.lineWidth=2;mx.setLineDash([]);mx.stroke();}
+  const px=F.p[0]*k,py=F.p[2]*k;
+  if(Math.hypot(px,py)<c){mx.beginPath();mx.arc(px,py,6,0,Math.PI*2);mx.fillStyle='#ffb347';mx.fill();mx.beginPath();mx.arc(px,py,11,0,Math.PI*2);mx.strokeStyle='rgba(255,179,71,.4)';mx.lineWidth=2;mx.stroke();}
+  mx.restore();
+  mx.fillStyle='rgba(189,176,162,.75)';mx.font='20px IBM Plex Mono, monospace';mx.fillText(`${(span*2).toFixed(0)} rs across`,10,W-12);
+}
+
+/* ---------------- main loop ---------------- */
+let last=performance.now();
+function tick(now){
+  if(xr.session)return;
+  requestAnimationFrame(tick);
+  const dt=Math.min(.1,(now-last)/1000);last=now;
+  if(S.play)clock+=dt*8;
+  stepFlight(dt);
+  const st=localState();
+  draw(dt,st);tele(dt,st);tickCaps(dt,st);frame++;
+  // adaptive resolution
+  ema=ema*.9+dt*1000*.1;
+  if(now-lastResize>600){
+    if(ema>21&&scale>.35){scale=Math.max(.35,scale*.88);lastResize=now;}
+    else if(ema<15&&scale<maxScale){scale=Math.min(maxScale,scale*1.05);lastResize=now;}
+  }
+}
+
+/* ---------------- WebXR immersive VR ---------------- */
+const xr={session:null,ref:null};
+async function enterVR(){
+  if(xr.session){xr.session.end();return;}
+  try{
+    const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor']});
+    await gl.makeXRCompatible();
+    const layer=new XRWebGLLayer(s,gl,{antialias:false,depth:false,framebufferScaleFactor:.5});
+    if('fixedFoveation' in layer)layer.fixedFoveation=1;
+    s.updateRenderState({baseLayer:layer});
+    xr.ref=await s.requestReferenceSpace('local');
+    xr.session=s;
+    $('#intro').hidden=true;S.play=true;syncPlay();S.pano=0;$('#bPano').setAttribute('aria-pressed','false');
+    s.addEventListener('select',()=>{S.play=!S.play;syncPlay();});
+    s.addEventListener('squeeze',()=>{const k=Object.keys(SC);reset(k[(k.indexOf(S.sc)+1)%k.length]);});
+    s.addEventListener('end',()=>{xr.session=null;$('#bVR').textContent='VR';last=performance.now();requestAnimationFrame(tick);});
+    $('#bVR').textContent='Exit VR';
+    let lt=null;
+    const xf=(t,fr)=>{
+      const ss=fr.session;ss.requestAnimationFrame(xf);
+      const dt=lt==null?.016:Math.min(.05,(t-lt)/1000);lt=t;
+      if(S.play)clock+=dt*8;
+      stepFlight(dt);const st=localState();tele(dt,st);tickCaps(dt,st);frame++;
+      const pose=fr.getViewerPose(xr.ref);if(!pose)return;
+      const L=ss.renderState.baseLayer;
+      gl.bindFramebuffer(gl.FRAMEBUFFER,L.framebuffer);
+      gl.useProgram(PS.p);
+      const base=camBasis(dt,st);
+      for(const v of pose.views){
+        const vp=L.getViewport(v);gl.viewport(vp.x,vp.y,vp.width,vp.height);
+        const rot=m3mul(base,m3quat(v.transform.orientation));
+        const pm=v.projectionMatrix;
+        setSceneUniforms(PS.u,st,rot,inv4(pm),vp.width,vp.height,1,200,2/(pm[5]*vp.height),0);
+        gl.drawArrays(gl.TRIANGLES,0,3);
+      }
+    };
+    s.requestAnimationFrame(xf);
+  }catch(e){console.error(e);queueCap('Could not start VR on this device.');}
+}
+if(navigator.xr&&navigator.xr.isSessionSupported){
+  navigator.xr.isSessionSupported('immersive-vr').then(ok=>{if(ok){$('#bVR').disabled=false;$('#bGoVR').hidden=false;}else $('#bVR').title='VR needs a WebXR headset browser';}).catch(()=>{});
+}else $('#bVR').title='VR needs a WebXR headset browser';
+
+/* ---------------- UI wiring ---------------- */
+function syncPlay(){$('#bPlay').textContent=S.play?'Pause':'Play';$('#bPlay').setAttribute('aria-pressed',S.play);}
+function setFx(k,v){FX[k]=v?1:0;$(`[data-fx="${k}"]`).setAttribute('aria-pressed',!!v);}
+$$('[data-sc]').forEach(b=>b.addEventListener('click',()=>{reset(b.dataset.sc);S.play=true;syncPlay();}));
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>{reset(b.dataset.go);S.play=true;syncPlay();}));
+$$('[data-look]').forEach(b=>b.addEventListener('click',()=>{S.look=b.dataset.look;$$('[data-look]').forEach(x=>x.setAttribute('aria-pressed',x===b));}));
+$$('[data-fx]').forEach(b=>b.addEventListener('click',()=>setFx(b.dataset.fx,!FX[b.dataset.fx])));
+$('#bPlay').addEventListener('click',()=>{S.play=!S.play;syncPlay();});
+const SPEEDS=[.5,1,2,4];
+$('#bSpeed').addEventListener('click',()=>{S.speed=SPEEDS[(SPEEDS.indexOf(S.speed)+1)%SPEEDS.length];$('#bSpeed').textContent=S.speed+'×';});
+$('#bReset').addEventListener('click',()=>{reset(S.sc);S.play=true;syncPlay();});
+const iFov=$('#iFov');
+function setFov(v){S.fov=Math.max(10,Math.min(120,v));iFov.value=S.fov;$('#oFov').textContent=Math.round(S.fov)+'°';}
+iFov.addEventListener('input',()=>setFov(+iFov.value));
+const iR=$('#iR');
+const rFromSlider=v=>1.05+Math.pow(v/1000,2.2)*38.95;
+function setHover(){S.hoverR=rFromSlider(+iR.value);$('#oR').textContent=S.hoverR.toFixed(S.hoverR<10?2:1)+' rs';if(S.sc==='hover'){F.p=hoverPos();F.E=Math.sqrt(1-1/S.hoverR);}}
+iR.addEventListener('input',setHover);
+$('#bPano').addEventListener('click',()=>{S.pano^=1;$('#bPano').setAttribute('aria-pressed',!!S.pano);if(S.pano)queueCap('All-sky map: the full 360° view around you, unwrapped like a world map. The hole sits at the center.');});
+$('#bFull').addEventListener('click',()=>{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});});
+function toggleClean(){S.clean=!S.clean;document.body.classList.toggle('clean',S.clean);$('#bClean').setAttribute('aria-pressed',S.clean);}
+$('#bClean').addEventListener('click',toggleClean);
+$('#bVR').addEventListener('click',enterVR);
+$('#bGoVR').addEventListener('click',enterVR);
+if(isTouch&&typeof DeviceOrientationEvent!=='undefined'){$('#bGyro').hidden=false;$('#bGyro').addEventListener('click',toggleGyro);}
+function begin(){$('#intro').hidden=true;S.play=true;syncPlay();queueCap(START[S.sc]);cv.focus&&cv.focus();}
+$('#bGo').addEventListener('click',begin);
+
+// pointer look: drag to turn, wheel or pinch to zoom
+const ptrs=new Map();let pinch0=0,fov0=75;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});cv.classList.add('drag');
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch0=Math.hypot(a.x-b.x,a.y-b.y);fov0=S.fov;}});
+cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;
+  if(ptrs.size===1){const k=.0052*(S.pano?1.6:S.fov/75);S.yaw+=(e.clientX-p.x)*k;S.pitch=Math.max(-1.5,Math.min(1.5,S.pitch+(e.clientY-p.y)*k));}
+  p.x=e.clientX;p.y=e.clientY;
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch0>0)setFov(fov0*pinch0/d);}});
+const up=e=>{ptrs.delete(e.pointerId);if(!ptrs.size)cv.classList.remove('drag');pinch0=0;};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('dblclick',()=>{S.yaw=0;S.pitch=0;});
+cv.addEventListener('wheel',e=>{e.preventDefault();setFov(S.fov*Math.exp(e.deltaY*.0012));},{passive:false});
+
+addEventListener('keydown',e=>{
+  if(e.target.closest&&e.target.closest('input')&&!/^(Space|KeyH)$/.test(e.code))return;
+  const k=e.code;
+  if(k==='Space'){e.preventDefault();if(!$('#intro').hidden){begin();return;}S.play=!S.play;syncPlay();}
+  else if(/^Digit[1-4]$/.test(k)){reset(['orbit','flyby','plunge','hover'][+k.slice(5)-1]);S.play=true;syncPlay();$('#intro').hidden=true;}
+  else if(k==='KeyR'){reset(S.sc);S.play=true;syncPlay();}
+  else if(k==='KeyL')setFx('lens',!FX.lens);
+  else if(k==='KeyD')setFx('dopp',!FX.dopp);
+  else if(k==='KeyJ')setFx('jets',!FX.jets);
+  else if(k==='KeyP')$('#bPano').click();
+  else if(k==='KeyV'&&!$('#bVR').disabled)enterVR();
+  else if(k==='KeyH')toggleClean();
+  else if(k==='KeyF')$('#bFull').click();
+  else if(k==='ArrowLeft')S.yaw-=.08;else if(k==='ArrowRight')S.yaw+=.08;
+  else if(k==='ArrowUp')S.pitch=Math.max(-1.5,S.pitch-.08);else if(k==='ArrowDown')S.pitch=Math.min(1.5,S.pitch+.08);
+  else if(k==='Equal'||k==='NumpadAdd')setFov(S.fov/1.12);else if(k==='Minus'||k==='NumpadSubtract')setFov(S.fov*1.12);
+  else if(k==='Escape'&&!$('#end').hidden)$('#end').hidden=true;
+});
+
+// deep link: flight.html#flyby etc.
+const h0=location.hash.slice(1);
+setHover();
+reset(SC[h0]?h0:'orbit');capQ=[];
+requestAnimationFrame(tick);
+window.__flight={S,F,FX,reset,get scale(){return scale;},get RT(){return RT;}};
+})();
+</script>
+</body>
+</html>

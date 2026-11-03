@@ -7,6 +7,7 @@ Single-page site for The Quasar Lab, a research and design lab merging film, mus
 ## Files
 
 - `index.html`: the whole site
+- `flight.html`: Quasar Flight, a ray traced black hole flight (360 view, all-sky map, WebXR VR)
 - `404.html`: not-found page
 - `favicon.svg`, `site.webmanifest`: icon and app metadata
 - `_headers`: Cloudflare Pages response headers (noindex, no framing); ignored by GitHub Pages
